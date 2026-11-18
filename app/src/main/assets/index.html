@@ -119,15 +119,15 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
 @media (orientation:landscape) and (max-height:620px),(orientation:landscape) and (pointer:coarse){
   body{padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));height:100dvh;overflow:hidden}
   main{--bw:min(calc((100dvh - 14px) * 1.1538),calc(100vw - 320px));width:100%;height:100%;margin:0;display:grid;
-    grid-template-columns:minmax(0,1fr) var(--bw) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto auto;
-    grid-template-areas:"head arena ctrl" "hud arena notice" "obj arena ." "disc arena ." "joy arena bomb";column-gap:clamp(8px,2vw,22px)}
+    grid-template-columns:minmax(0,1fr) var(--bw) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;
+    grid-template-areas:"head arena ctrl" "hud arena notice" "obj arena ." "joy arena bomb";column-gap:clamp(8px,2vw,22px)}
   header{display:contents}
   header strong{grid-area:head;font-size:15px;align-self:start}
   header div{grid-area:ctrl;display:flex;justify-content:center;gap:clamp(6px,1.6vw,12px);align-self:start}
   header button{width:clamp(38px,12vh,46px);height:clamp(38px,12vh,46px);padding:0;border-radius:50%;font-size:0!important;display:grid;place-items:center}
   header button::before{font-size:clamp(16px,5vh,20px);line-height:1}
   #sound::before{content:"🔊"}#sound[aria-pressed="true"]::before{content:"🔇"}
-  #pause::before{content:"⏸️"}
+  #pause::before{content:"❚❚";font-weight:900;color:#ffd374;letter-spacing:-2px}
   #reset::before{content:"↻";font-weight:900;color:#ffd374}
   #hud{grid-area:hud;align-self:start;margin-top:8px;grid-template-columns:1fr 1fr;gap:5px 8px;padding:7px 9px;border-bottom:1px solid #5d8a62;border-radius:10px}
   #hud>div{display:flex;align-items:center;gap:6px}
@@ -137,16 +137,40 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
   #stage{font-size:13px!important}
   #arena{grid-area:arena;align-self:center;border-radius:9px}
   #touch{display:contents}
-  #joystick{grid-area:joy;align-self:end;justify-self:start;width:clamp(110px,34vh,150px)}
+  #joystick{grid-area:joy;align-self:end;justify-self:start;width:min(clamp(110px,34vh,150px),calc(100% - 20px))}
   #knob{width:clamp(46px,14vh,60px);height:clamp(46px,14vh,60px)}
   #flame,#charge{border-radius:50%;display:grid;place-items:center;padding:0;line-height:1.1;touch-action:none;justify-self:center}
-  #flame{grid-column:3;grid-row:2/5;align-self:end;width:clamp(70px,22vh,92px);height:clamp(70px,22vh,92px);font-size:14px;margin-bottom:clamp(10px,4vh,18px)}
+  #flame{grid-column:3;grid-row:2/4;align-self:end;width:clamp(70px,22vh,92px);height:clamp(70px,22vh,92px);font-size:14px;margin-bottom:clamp(10px,4vh,18px)}
   #charge{grid-area:bomb;align-self:end;width:clamp(92px,30vh,124px);height:clamp(92px,30vh,124px);font-size:16px}
   footer{display:contents}
   #objective{grid-area:obj;align-self:start;margin-top:10px;font-size:12px;line-height:1.35;color:#d9e7d2}
   .keys{display:none}
   #notice{grid-area:notice;align-self:start;margin-top:10px;font-size:13px;text-align:center}
   #disclaimer{grid-area:disc;margin:0 0 8px;align-self:end;text-align:left;font-size:9.5px}
+  /* --- acabamento: paineis laterais tipo controle --- */
+  body{background:radial-gradient(ellipse 60% 80% at 50% 50%,#1d3f2d 0,#0d1f16 70%,#07110c 100%)}
+  main{column-gap:clamp(8px,1.6vw,14px)}
+  main::before,main::after{content:"";grid-row:1/-1;z-index:0;border-radius:20px;
+    background:linear-gradient(180deg,#1a3829f2,#0f2419f2 60%,#0b1c13f2);border:1px solid #416e50;
+    box-shadow:inset 0 1px 0 #ffffff1c,inset 0 -10px 24px #0006,0 10px 26px #000a}
+  main::before{grid-column:1}main::after{grid-column:3}
+  header strong,header div,#hud,#objective,#notice,#disclaimer,#joystick,#flame,#charge,#arena{position:relative;z-index:1}
+  header strong{justify-self:center;margin-top:12px;font:900 clamp(15px,5vh,20px)/1 system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;
+    background:linear-gradient(180deg,#fff3a6,#ffc145 55%,#ff8a2b);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 2px 0 #2a1206)}
+  header div{margin-top:12px}
+  #hud{justify-self:stretch;margin:10px 10px 0;background:#0a1711cc;border-color:#355c43;box-shadow:inset 0 2px 6px #0008}
+  #objective{justify-self:stretch;margin:10px 10px 0;padding:7px 9px;border-radius:10px;background:#ffd3740f;border:1px dashed #ffd37455;
+    font:700 11.5px/1.35 system-ui,sans-serif;color:#ffe7a6;text-align:center}
+  #objective:empty{display:none}
+  #objective::before{content:"🎯 "}
+  #notice{justify-self:stretch;margin:10px 10px 0;font:900 13px system-ui,sans-serif;color:#b8ffab}
+  #disclaimer{grid-area:arena;z-index:2;align-self:end;justify-self:center;margin:0 0 3px;pointer-events:none;white-space:nowrap;
+    font:600 8px/1 system-ui,sans-serif;color:#e8fff4cc;text-shadow:0 1px 2px #000c}
+  #joystick{justify-self:center;margin-bottom:12px}
+  #flame{margin-bottom:clamp(8px,3vh,16px)}
+  #charge{margin-bottom:12px}
+  #arena{border:0;box-shadow:0 0 0 2px #0a1510,0 0 0 4px #b8894e,0 0 0 6px #5b3d22,0 14px 34px #000d}
   #menu{padding:8px}
   #menu .card,#menu.victory .card{max-height:100%;overflow:auto;padding:10px 14px}
   #menu h1,#menu.victory h1{font-size:clamp(18px,7vh,28px)!important;margin:2px 0 4px}
