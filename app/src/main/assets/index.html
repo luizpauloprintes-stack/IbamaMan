@@ -118,20 +118,25 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
 /* ---------- Celular deitado (horizontal) ---------- */
 @media (orientation:landscape) and (max-height:620px),(orientation:landscape) and (pointer:coarse){
   body{padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));height:100dvh;overflow:hidden}
-  main{--bw:min(calc((100dvh - 62px) * 1.1538),calc(100vw - 380px));width:100%;height:100%;margin:0;display:grid;
+  main{--bw:min(calc((100dvh - 14px) * 1.1538),calc(100vw - 320px));width:100%;height:100%;margin:0;display:grid;
     grid-template-columns:minmax(0,1fr) var(--bw) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;
-    grid-template-areas:"head hud disc" "head arena notice" "obj arena ." "joy arena btns";column-gap:clamp(8px,2vw,22px)}
+    grid-template-areas:"head arena disc" "hud arena notice" "obj arena fire" "joy arena bomb";column-gap:clamp(8px,2vw,22px)}
   header{grid-area:head;flex-direction:column;align-items:flex-start;margin:0;gap:6px}
   header strong{font-size:15px}
   header div{display:flex;flex-wrap:wrap;gap:5px}header button{padding:6px 9px;font-size:12px}
-  #hud{grid-area:hud;padding:4px 2px;align-self:end}#hud b{font-size:13px;margin-top:1px}
-  #arena{grid-area:arena;align-self:start}
+  #hud{grid-area:hud;align-self:start;margin-top:8px;grid-template-columns:1fr 1fr;gap:5px 8px;padding:7px 9px;border-bottom:1px solid #5d8a62;border-radius:10px}
+  #hud>div{display:flex;align-items:center;gap:6px}
+  #hud>div:first-child{grid-column:1/-1}
+  #hud>div+div::before{display:none}
+  #hud b{font-size:14px;margin:0}
+  #stage{font-size:13px!important}
+  #arena{grid-area:arena;align-self:center;border-radius:9px}
   #touch{display:contents}
   #joystick{grid-area:joy;align-self:end;justify-self:start;width:clamp(110px,34vh,150px)}
   #knob{width:clamp(46px,14vh,60px);height:clamp(46px,14vh,60px)}
-  #flame,#charge{grid-area:btns;border-radius:50%;display:grid;place-items:center;padding:0;line-height:1.1;touch-action:none}
-  #flame{align-self:start;justify-self:start;width:clamp(64px,19vh,80px);height:clamp(64px,19vh,80px);font-size:13px;margin-left:4px}
-  #charge{align-self:end;justify-self:end;width:clamp(86px,27vh,112px);height:clamp(86px,27vh,112px);font-size:15px;margin-top:clamp(18px,8vh,40px)}
+  #flame,#charge{border-radius:50%;display:grid;place-items:center;padding:0;line-height:1.1;touch-action:none;justify-self:center}
+  #flame{grid-area:fire;align-self:end;width:clamp(70px,22vh,92px);height:clamp(70px,22vh,92px);font-size:14px;margin-bottom:clamp(10px,4vh,18px)}
+  #charge{grid-area:bomb;align-self:end;width:clamp(92px,30vh,124px);height:clamp(92px,30vh,124px);font-size:16px}
   footer{display:contents}
   #objective{grid-area:obj;align-self:start;margin-top:10px;font-size:12px;line-height:1.35;color:#d9e7d2}
   .keys{display:none}
