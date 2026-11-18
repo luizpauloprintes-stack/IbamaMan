@@ -1,0 +1,43 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "com.luizpaulo.fiscalboom"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "com.luizpaulo.fiscalboom"
+        minSdk 26
+        targetSdk 35
+        // No GitHub Actions, o numero da execucao vira o versionCode (cada APK novo atualiza o anterior).
+        versionCode((project.findProperty("buildNumber") ?: "1").toString().toInteger())
+        versionName "1.0." + (project.findProperty("buildNumber") ?: "0")
+    }
+
+    signingConfigs {
+        // Chave de teste fixa, para que cada APK novo instale por cima do anterior.
+        // Para publicar na Play Store, use uma chave de release guardada fora do repositorio.
+        debug {
+            storeFile file("debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
