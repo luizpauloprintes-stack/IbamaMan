@@ -53,7 +53,7 @@ function arm(side,sleeve,phase,extra){
   sh.rotation.x=-Math.sin(phase*Math.PI*2)*.5*side;sh.rotation.z=side*.12;
   return sh;
 }
-export function fiscal(dir=2,frame=0){
+export function fiscal(dir=2,frame=0,hero=false){
   const phase=frame?(frame-1)/4:0, root=new THREE.Group(), body=new THREE.Group();
   root.add(body);
   body.position.y=frame?Math.abs(Math.sin(phase*Math.PI*2))*.03:0;
@@ -77,7 +77,17 @@ export function fiscal(dir=2,frame=0){
   body.add(at(box(.06,.09,.05,M(0x22302a),.015),-.17,.56,.07));
   body.add(at(sph(.012,M(0x7dff8a,{e:0x3dff5a,ei:1})),-.17,.62,.09));
   // bracos
-  body.add(arm(-1,0xb39a66,phase));body.add(arm(1,0xb39a66,phase));
+  if(hero){
+    // bracos cruzados
+    for(const s of [-1,1]){
+      const sh=new THREE.Group();sh.position.set(s*.2,.52,0);
+      sh.add(at(cap(.052,.1,M(0xb39a66)),0,-.08,0));
+      const fore=new THREE.Group();fore.position.set(0,-.16,0);
+      fore.add(at(cap(.05,.14,M(0xb39a66)),-s*.09,0,.07,0,0,s*1.45));
+      fore.add(at(sph(.055,M(SKIN)),-s*.2,0,.09));
+      sh.add(fore);sh.rotation.x=-.35;sh.rotation.z=s*.1;body.add(sh);
+    }
+  }else{body.add(arm(-1,0xb39a66,phase));body.add(arm(1,0xb39a66,phase))}
   // cabeca
   const head=new THREE.Group();head.position.y=.76;body.add(head);
   head.add(sph(.2,M(SKIN,{r:.55})));
@@ -89,7 +99,17 @@ export function fiscal(dir=2,frame=0){
     head.add(at(sph(.04,M(SKIN)),s*.2,-.01,0,0,0,0,.5,.8,.6));          // orelhas
   }
   head.add(at(sph(.022,M(0xdc9670)),0,-.07,.2));
-  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.035,.009,8,16,Math.PI),M(0x8a3e2c)),0,-.115,.175,Math.PI,0,0));
+  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.035,.009,8,16,Math.PI),M(0x8a3e2c)),0,-.115,.175,Math.PI,0,0,hero?1.3:1,hero?.6:1,1));
+  if(hero){
+    // oculos escuros
+    const lens=M(0x101418,{m:.7,r:.12});
+    for(const s of [-1,1]){
+      head.add(at(box(.11,.065,.03,lens,.025),s*.075,-.03,.198));
+      head.add(at(box(.035,.012,.01,M(0xffffff,{e:0xffffff,ei:.7})),s*.075-.025,-.012,.215,0,0,.4));
+      head.add(at(box(.012,.012,.2,M(0x101418)),s*.19,-.025,.1));
+    }
+    head.add(at(box(.05,.014,.015,M(0x101418)),0,-.02,.205));
+  }
   // bone
   const capMat=M(0x64823c,{r:.7});
   head.add(at(new THREE.Mesh(new THREE.SphereGeometry(.218,32,16,0,Math.PI*2,0,Math.PI/2),capMat),0,.075,-.005,0,0,0,1,.92,1));
