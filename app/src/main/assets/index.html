@@ -63,6 +63,8 @@ body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-rig
 #cover-play:active{transform:translateY(4px);box-shadow:0 1px 0 #a8641a}
 #cover-help,#cover-restart{background:#10221ad9;border:1px solid #9fc49a88;color:#f1f7e6}
 #cover-restart{font-size:14px!important;padding:9px!important}
+.cover-record{grid-column:1/-1;margin:4px 0 0;font:800 13px system-ui,sans-serif;color:#ffd374;text-shadow:0 2px 0 #000a}
+.cover-record[hidden]{display:none}
 .cover-note{margin:8px 0 0;font:500 10.5px system-ui,sans-serif;color:#cfe0c8b0}
 @keyframes pulse{50%{transform:scale(1.035)}}
 @keyframes burst{50%{transform:translate(-50%,-50%) scale(1.06) rotate(4deg)}}
@@ -209,6 +211,7 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
     <button id="cover-play">▶ JOGAR</button>
     <button id="cover-restart" hidden>↻ Recomeçar do início</button>
     <button id="cover-help">Como jogar</button>
+    <p id="cover-record" class="cover-record" hidden></p>
     <p class="cover-note">Jogo de humor, sem vínculo com órgãos públicos. Personagens fictícios.</p>
   </div>
 </div>
@@ -247,7 +250,7 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
 </main>
 <script>
 "use strict";
-const Config = Object.freeze({cols:15, rows:13, tile:48, fuse:2.5, flash:.48, step:1/120, speed:5, drop:.30});
+const Config = Object.freeze({cols:15, rows:13, tile:48, fuse:2.8, flash:.48, step:1/120, speed:3.8, drop:.30});
 const DIR = [[0,-1],[1,0],[0,1],[-1,0]];
 const WALL=1, CRATE=2, EMPTY=0;
 const State={TITLE:"TITLE",PLAYING:"PLAYING",PAUSED:"PAUSED",VICTORY:"VICTORY",GAMEOVER:"GAMEOVER"};
@@ -450,7 +453,7 @@ class PowerUp extends Entity {
     switch(this.type){
       case 0:p.capacity=Math.min(5,p.capacity+1);break;
       case 1:p.range=Math.min(5,p.range+1);break;
-      case 2:p.speed=Math.min(8,p.speed+.6);break;
+      case 2:p.speed=Math.min(5.6,p.speed+.45);break;
       case 3:p.shield=true;break;
       case 4:game.callSupport();break;
       case 5:p.fuel=Math.min(9,p.fuel+2);break;
@@ -481,14 +484,14 @@ class Enemy extends Mover {
   choose(game,options){return pick(options)}
 }
 class Balsa extends Enemy {
-  constructor(x,y){super(x,y,1.55,"balsa",220)}
+  constructor(x,y){super(x,y,1.25,"balsa",220)}
   choose(game,options){
     const back=(this.dir+2)%4;
     return options.includes(this.dir)?this.dir:options.includes(back)?back:pick(options);
   }
 }
 class Escavadeira extends Enemy {
-  constructor(x,y){super(x,y,2.35,"escavadeira",360)}
+  constructor(x,y){super(x,y,1.9,"escavadeira",360)}
   choose(game,options){
     const dx=Math.round(game.player.px)-this.x,dy=Math.round(game.player.py)-this.y;
     if((dx===0||dy===0)&&Math.abs(dx+dy)>0&&Math.abs(dx+dy)<=3){
@@ -504,7 +507,7 @@ class Escavadeira extends Enemy {
   }
 }
 class Garimpeiro extends Enemy {
-  constructor(x,y){super(x,y,4.3,"garimpeiro",180)}
+  constructor(x,y){super(x,y,3.3,"garimpeiro",180)}
   choose(game,options){
     // Prefere se afastar do fiscal e evita entrar em becos sem saída.
     const p=game.player;
@@ -519,7 +522,7 @@ class Garimpeiro extends Enemy {
   }
 }
 class Dragagem extends Enemy {
-  constructor(x,y){super(x,y,1.8,"dragagem",850,3);this.turn=0}
+  constructor(x,y){super(x,y,1.45,"dragagem",850,3);this.turn=0}
   choose(game,options){
     // Faz dois movimentos por lado e gira. Usa um desvio se o trajeto estiver fechado.
     const pattern=[1,1,2,2,3,3,0,0];
@@ -914,20 +917,20 @@ class Game {
     const enraged=boss.hp<=6;
     boss.timer-=dt;
     if(boss.mode==="patrol"){
-      boss.x+=boss.direction*dt*(enraged?3.4:2.5);
+      boss.x+=boss.direction*dt*(enraged?2.7:2.0);
       if(boss.x<3||boss.x>11){
         boss.x=Math.min(11,Math.max(3,boss.x));
         boss.direction*=-1;
       }
       if(boss.timer<=0){
-        boss.mode="windup";boss.timer=enraged?.55:.75;
+        boss.mode="windup";boss.timer=enraged?.8:1.05;
       }
     }else if(boss.mode==="windup"&&boss.timer<=0){
       const aim=Math.atan2(p.py-boss.y,p.px-boss.x);
       const sweep=enraged&&boss.attack%2===1;
-      const offsets=sweep?[-1.08,-.72,-.36,0,.36,.72,1.08]:enraged?[-.64,-.32,0,.32,.64]:[-.36,-.18,0,.18,.36];
+      const offsets=window.bossFan(enraged,sweep);
       for(const offset of offsets){
-        const angle=aim+offset,speed=enraged?6.9:5.3;
+        const angle=aim+offset,speed=enraged?5.2:4.1;
         boss.papers.push({x:boss.x,y:boss.y,vx:Math.cos(angle)*speed,
           vy:Math.sin(angle)*speed,spin:angle,life:3});
       }
@@ -2263,6 +2266,174 @@ wrap("load",function(orig,index){
   return orig.call(this,index);
 });
 })();
+// =====================================================================
+// Controle mais preciso + balanceamento (tempo, incendio, chefe, estrelas)
+// =====================================================================
+(()=>{
+const TAU=Math.PI*2;
+// ---------- Controle ----------
+// Curva assistida: se a direcao pedida esta bloqueada, segue na direcao anterior
+// ate a abertura aparecer (como no Bomberman classico).
+Player.prototype.update=function(game,dt){
+  this.safe=Math.max(0,this.safe-dt);
+  if(this.progress===1){
+    const want=game.input.direction();
+    if(want>=0){
+      if(this.move(game,want)){game.audio.play("step");this.lastMove=want}
+      else if(this.lastMove!==undefined&&(this.lastMove+want)%2===1&&this.move(game,this.lastMove))game.audio.play("step");
+      else this.dir=want;
+    }else this.lastMove=undefined;
+  }
+  this.advance(dt);
+};
+// Toque rapido no joystick nao se perde: guarda a ultima direcao por 0,2 s.
+const directionOrig=Input.prototype.direction;
+Input.prototype.direction=function(){
+  const d=directionOrig.call(this);
+  if(d>=0){this.memo=undefined;return d}
+  if(this.memo!==undefined&&performance.now()-this.memoAt<250){const m=this.memo;this.memo=undefined;return m}
+  return -1;
+};
+// Joystick flutuante: o centro e onde o dedo encosta; zona morta menor e troca de direcao mais facil.
+VirtualStick.prototype.move=function(event){
+  if(this.originX===undefined){this.originX=event.clientX;this.originY=event.clientY}
+  const dx=event.clientX-this.originX,dy=event.clientY-this.originY;
+  const distance=Math.hypot(dx,dy);
+  const scale=distance>this.radius?this.radius/distance:1;
+  const ox=this.originX-this.centerX,oy=this.originY-this.centerY;
+  this.knob.style.transform=`translate(-50%,-50%) translate(${ox*.5+dx*scale}px,${oy*.5+dy*scale}px)`;
+  if(distance<8){this.setDirection(-1);return}
+  const angle=Math.atan2(dx,-dy)*180/Math.PI;
+  const delta=((angle-this.direction*90+540)%360)-180;
+  if(this.direction>=0&&Math.abs(delta)<=52)return;
+  const dir=(Math.round(angle/90)+4)%4;
+  const input=window.fiscalBoomGame&&window.fiscalBoomGame.input;
+  if(input){input.memo=dir;input.memoAt=performance.now()}
+  this.setDirection(dir);
+};
+const resetOrig=VirtualStick.prototype.reset;
+VirtualStick.prototype.reset=function(){this.originX=this.originY=undefined;return resetOrig.call(this)};
+
+// ---------- Fases, tempo e incendio ----------
+const LIMITS={Rio:200,Garimpo:220,"Acampamento":280};
+const G=Game.prototype;
+const wrap=(name,fn)=>{const orig=G[name];G[name]=function(...a){return fn.call(this,orig,...a)}};
+const SAVE_KEY="fiscalBoom.v1";
+const save={load(){try{return JSON.parse(localStorage.getItem(SAVE_KEY))||{}}catch(e){return{}}},
+  write(d){try{localStorage.setItem(SAVE_KEY,JSON.stringify(d))}catch(e){}}};
+window.fiscalBoomSave=save;
+
+wrap("load",function(orig,index){
+  const def=Level.definitions[index];
+  if(!def.plenary)def.seed=(Math.random()*4294967295)>>>0;   // caixas em lugares diferentes a cada partida
+  const r=orig.call(this,index);
+  // itens escondidos sorteados entre as caixas: 1 vida por fase, escudo garantido no chefe
+  const types=def.plenary?[3,6,5]:[6,7,5,3,0,1];
+  const crates=[];
+  for(let y=1;y<12;y++)for(let x=1;x<14;x++)if(this.map.at(x,y)===CRATE)crates.push(cell(x,y));
+  for(let i=crates.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[crates[i],crates[j]]=[crates[j],crates[i]]}
+  this.map.hiddenSupplies=new Map();
+  types.forEach((t,i)=>{if(crates[i]!==undefined)this.map.hiddenSupplies.set(crates[i],t)});
+  this.clock=0;this.burn=new Set();this.burnRing=-1;this.burnTimer=0;this.levelDeaths=0;
+  return r;
+});
+wrap("hurt",function(orig,blast){
+  const lives=this.lives;const r=orig.call(this,blast);
+  if(this.lives<lives){this.levelDeaths=(this.levelDeaths||0)+1;this.clock=0;this.burn=new Set();this.burnRing=-1}
+  return r;
+});
+const ringOf=(x,y)=>Math.min(x-1,y-1,13-x,11-y);
+wrap("update",function(orig,dt){
+  const idx=this.index,elapsed=this.elapsed,deaths=this.levelDeaths||0,name=this.level.name,par=this.level.par;
+  const r=orig.call(this,dt);
+  // fase concluida?
+  if(this.index!==idx||this.state===State.VICTORY){
+    const t=elapsed*1,p=par*1.3;
+    const stars=deaths===0&&t<=p?3:deaths<=1&&t<=p*1.6?2:1;
+    const data=save.load();data.stars=data.stars||{};
+    data.stars[name]=Math.max(data.stars[name]||0,stars);save.write(data);
+    this.lastStars=stars;
+    this.stamp(1,1,"★".repeat(stars)+"☆".repeat(3-stars)+" "+name+" concluída!","#ffd374");
+    return r;
+  }
+  if(this.state!==State.PLAYING||this.boss)return r;
+  const limit=LIMITS[name];if(!limit)return r;
+  this.clock=(this.clock||0)+dt;
+  if(this.clock>=limit){
+    this.burnTimer-=dt;
+    if(this.burnTimer<=0){
+      this.burnRing++;this.burnTimer=3.5;
+      if(this.burnRing===0){this.stamp(7,6,"INCÊNDIO! O FOGO ESTÁ FECHANDO O CERCO","#ff8a5c");window.fiscalBoomVibrate&&window.fiscalBoomVibrate([60,60,60])}
+      for(let y=1;y<12;y++)for(let x=1;x<14;x++)if(ringOf(x,y)===this.burnRing&&this.map.at(x,y)!==WALL)this.burn.add(cell(x,y));
+    }
+    const p=this.player;
+    if(this.burn.has(cell(Math.round(p.px),Math.round(p.py)))&&p.safe<=0)this.hurt(true);
+  }
+  return r;
+});
+// ---------- Chefe mais justo ----------
+// aviso mais longo, leque menor e papeis mais lentos
+window.bossFan=(enraged,sweep)=>sweep?[-.9,-.45,0,.45,.9]:enraged?[-.5,-.25,0,.25,.5]:[-.28,0,.28];
+
+// ---------- Desenho: fogo do incendio, alerta de tempo e mira do chefe ----------
+const drawOrig=Renderer.prototype.draw;
+Renderer.prototype.draw=function(game,t){
+  drawOrig.call(this,game,t);
+  const c=this.ctx,k=this.k||1;c.setTransform(k,0,0,k,0,0);
+  if(game.burn&&game.burn.size){
+    c.save();c.globalCompositeOperation="lighter";
+    for(const id of game.burn){
+      const x=id%15*48+24,y=Math.floor(id/15)*48+24,f=Math.sin(t*14+id)*.5+.5;
+      c.globalAlpha=.85;c.fillStyle=this.rad(c,x,y+6,30,["#fff2a8","#ff9a2a","rgba(220,50,10,.5)","rgba(200,40,10,0)"]);
+      c.fillRect(x-30,y-24,60,60);
+      for(let i=0;i<3;i++){const fx=x-12+i*12,h=14+f*10+Math.sin(t*20+i+id)*4;
+        c.fillStyle=this.rad(c,fx,y+8-h*.5,h*.7,["#fff6c8","#ffb340","rgba(255,80,20,0)"]);c.fillRect(fx-h,y+8-h*1.5,h*2,h*2)}
+    }
+    c.restore();
+  }
+  const limit=LIMITS[game.level.name];
+  if(limit&&!game.boss&&game.state===State.PLAYING){
+    const left=limit-(game.clock||0);
+    if(left<20&&left>0){const a=(Math.sin(t*8)*.5+.5)*.5*(1-left/20);
+      c.strokeStyle=`rgba(255,90,50,${a})`;c.lineWidth=14;c.strokeRect(7,7,706,610)}
+  }
+  const b=game.boss;
+  if(b&&b.mode==="windup"&&game.player){
+    const p=game.player,aim=Math.atan2(p.py-b.y,p.px-b.x),enraged=b.hp<=6,sweep=enraged&&b.attack%2===1;
+    c.save();c.setLineDash([10,8]);c.lineDashOffset=-t*40;
+    for(const o of window.bossFan(enraged,sweep)){
+      const a=aim+o,x0=b.x*48+24,y0=b.y*48+24,x1=x0+Math.cos(a)*420,y1=y0+Math.sin(a)*420;
+      c.strokeStyle="rgba(20,10,10,.55)";c.lineWidth=6;c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();
+      c.strokeStyle=`rgba(255,225,77,${.65+.3*Math.sin(t*20)})`;c.lineWidth=3;c.beginPath();c.moveTo(x0,y0);c.lineTo(x1,y1);c.stroke();
+    }
+    c.restore();
+  }
+};
+// ---------- Placar: fase X/4, tempo restante ----------
+const hudUpdate=HUD.prototype.update;
+HUD.prototype.update=function(game){
+  hudUpdate.call(this,game);
+  this.write("stage",(game.index+1)+"/"+Level.definitions.length+" · "+game.level.name);
+  const limit=LIMITS[game.level.name];
+  if(limit&&!game.boss){
+    const left=Math.max(0,Math.ceil(limit-(game.clock||0)));
+    this.write("clock",left?Math.floor(left/60)+":"+String(left%60).padStart(2,"0"):"🔥");
+    $("clock").style.color=left<=30?(left%2?"#ff7a5c":"#ffd374"):"";
+  }else $("clock").style.color="";
+};
+// ---------- Recorde ----------
+const hudMenu=HUD.prototype.menu;
+HUD.prototype.menu=function(game){
+  hudMenu.call(this,game);
+  if(game.state===State.VICTORY||game.state===State.GAMEOVER){
+    const data=save.load(),best=data.record||0;
+    let extra="";
+    if(game.score>best){data.record=game.score;save.write(data);extra=" 🏆 Novo recorde!"}
+    else extra=" Recorde: "+best.toLocaleString("pt-BR")+".";
+    const desc=$("desc");desc.textContent+=extra;this.values.desc=desc.textContent;
+  }
+};
+})();
 // ---------- Capa animada e tela "Como jogar" ----------
 // Reaproveita os desenhos do jogo (Renderer) para montar a cena da capa.
 class Cover {
@@ -2296,6 +2467,10 @@ class Cover {
   }
   show(){
     const paused=this.game.state===State.PAUSED;
+    const data=(window.fiscalBoomSave&&window.fiscalBoomSave.load())||{};
+    const stars=Object.values(data.stars||{}).reduce((a,b)=>a+b,0),total=(Level.definitions.length)*3;
+    const rec=$("cover-record");
+    if(data.record||stars){rec.hidden=false;rec.textContent="🏆 Recorde: "+(data.record||0).toLocaleString("pt-BR")+"   ⭐ "+stars+"/"+total}else rec.hidden=true;
     $("cover-play").textContent=paused?"▶ CONTINUAR":"▶ JOGAR";
     $("cover-restart").hidden=!paused;
     this.syncSound();
