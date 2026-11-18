@@ -316,6 +316,63 @@ export function arara(){
   for(const s of [-1,1])g.add(at(cap(.015,.04,M(0x3a3a3a)),s*.04,.17,.03,0,0,0));
   g.rotation.y=.5;return g;
 }
+
+// ---------- fiscal tatico jogavel (4 direcoes, caminhada) ----------
+export function fiscalTatico(dir=2,frame=0){
+  const phase=frame?(frame-1)/4:0,root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  body.position.y=frame?Math.abs(Math.sin(phase*Math.PI*2))*.03:0;
+  const olive=M(0x5d6b34,{r:.75}),dark=M(0x3e4824,{r:.8}),glove=M(0x2b2b28,{r:.7});
+  // pernas com botas grandes
+  for(const s of [-1,1]){
+    const hip=new THREE.Group();hip.position.set(s*.085,.25,0);
+    hip.add(at(cap(.068,.1,olive),0,-.09,0));
+    hip.add(at(box(.14,.1,.21,M(0x5a4127,{r:.6}),.04),0,-.2,.03));
+    hip.add(at(box(.145,.025,.215,M(0x2a1e14)),0,-.245,.03));
+    hip.rotation.x=Math.sin(phase*Math.PI*2)*.55*s;body.add(hip);
+  }
+  body.add(at(box(.37,.3,.25,olive,.09),0,.42,0));
+  body.add(at(box(.39,.24,.27,dark,.06),0,.44,0));
+  for(const x of [-.12,0,.12])body.add(at(box(.1,.085,.06,M(0x4a5528,{r:.8}),.02),x,.33,.14));
+  body.add(at(box(.41,.05,.28,M(0x2b2219),.015),0,.29,0));
+  body.add(at(box(.07,.045,.02,M(0xd9b25a,{m:.8,r:.3}),.008),0,.29,.145));
+  const chest=new THREE.Mesh(new THREE.PlaneGeometry(.2,.07),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#141814","#f4f7f0",160,56,"900 36px Arial")}));
+  body.add(at(chest,0,.5,.137));
+  body.add(at(box(.06,.1,.05,M(0x22302a),.015),-.11,.53,.15));
+  body.add(at(sph(.012,M(0x7dff8a,{e:0x3dff5a,ei:1})),-.11,.6,.17));
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(.3,.1),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#2c3d22","#f4f7cf",180,52,"900 34px Arial")}));
+  body.add(at(back,0,.47,-.137,0,Math.PI));
+  // bracos balancando, luvas taticas
+  for(const side of [-1,1]){
+    const sh=new THREE.Group();sh.position.set(side*.215,.53,0);
+    sh.add(at(cap(.058,.13,olive),0,-.1,0));
+    sh.add(at(sph(.07,glove),0,-.22,.01));
+    if(side===1){const flag=new THREE.Mesh(new THREE.PlaneGeometry(.075,.05),new THREE.MeshStandardMaterial({map:flagTex}));sh.add(at(flag,.06,-.05,0,0,Math.PI/2))}
+    sh.rotation.x=-Math.sin(phase*Math.PI*2)*.5*side;sh.rotation.z=side*.14;
+    body.add(sh);
+  }
+  // cabeca determinada + capacete
+  const head=new THREE.Group();head.position.y=.8;body.add(head);
+  head.add(sph(.21,M(SKIN,{r:.55})));
+  head.add(at(sph(.2,M(0x3a2618)),0,-.03,-.04,0,0,0,1,.85,.95));
+  head.add(at(sph(.21,M(SKIN,{r:.55})),0,0,.012));
+  for(const s of [-1,1]){
+    head.add(eye(s*.075,-.06,.19,1.25));
+    head.add(at(box(.1,.03,.025,M(0x3a2618)),s*.075,.0,.205,0,0,s*-.42));
+    head.add(at(sph(.045,M(SKIN)),s*.21,-.02,0,0,0,0,.5,.8,.6));
+  }
+  head.add(at(sph(.024,M(0xdc9670)),0,-.1,.21));
+  head.add(at(box(.08,.014,.01,M(0x8a3e2c)),.01,-.15,.19,0,0,-.12));
+  const helm=M(0x56632f,{r:.6});
+  head.add(at(new THREE.Mesh(new THREE.SphereGeometry(.245,40,20,0,Math.PI*2,0,Math.PI/2),helm),0,.07,0,0,0,0,1,.95,1));
+  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.245,.03,10,48),helm),0,.07,0,Math.PI/2,0,0,1,1,1));
+  head.add(at(cyl(.255,.27,.03,M(0x4a552a,{r:.6}),48),0,.06,0));
+  const hp=new THREE.Mesh(new THREE.PlaneGeometry(.17,.08),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#1f3a6b","#ffffff",160,72,"900 40px Arial")}));
+  head.add(at(hp,0,.19,.225,-.55));
+  const hb=new THREE.Mesh(new THREE.PlaneGeometry(.17,.08),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#1f3a6b","#ffffff",160,72,"900 40px Arial")}));
+  head.add(at(hb,0,.19,-.225,.55,Math.PI));
+  root.rotation.y=[Math.PI,Math.PI/2,0,-Math.PI/2][dir];
+  return root;
+}
 // ---------- maquinas ----------
 export function balsa(){
   const g=new THREE.Group();
@@ -475,5 +532,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true){
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,fiscal,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,fiscal,fiscalTatico,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;

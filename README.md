@@ -21,6 +21,18 @@ O Android vai pedir para permitir "instalar apps desconhecidos" na primeira vez.
 
 Para testar o jogo no computador, basta abrir `app/src/main/assets/index.html` no navegador.
 
+## Multiplayer
+
+Na capa, **👥 Multiplayer**: um jogador cria a sala (Cooperativo ou Batalha) e recebe um código de 4 letras;
+os outros tocam em **Entrar** e digitam o código. Até 4 jogadores, precisa de internet.
+
+- **Cooperativo:** todos nas 4 fases, vidas compartilhadas; qualquer um pode prender garimpeiros e chegar à saída.
+- **Batalha:** arena sem inimigos; bomba e fogo atingem os outros; vence a rodada quem sobrar, campeão com 3 rodadas.
+
+Como funciona: quem cria a sala roda o jogo; os outros enviam a própria posição e as ações e recebem o estado
+10 vezes por segundo. As mensagens passam por um servidor MQTT público (HiveMQ, com EMQX e Mosquitto de reserva).
+Só trafegam dados do jogo (posições, nomes escolhidos na sala).
+
 ## Assinatura
 
 O APK usa uma chave de teste (`app/debug.keystore`) fixa, para que cada versão nova instale por cima da anterior.
