@@ -9,7 +9,7 @@ async def main():
         atlas=await pg.evaluate("""()=>{
           const S=window.STUDIO,A={},add=(name,obj,size,gy,el,scale=2)=>{A[name]={size,src:S.render(obj,size,gy,el,scale).toDataURL('image/webp',.92)}};
           for(let d=0;d<4;d++)for(let f=0;f<5;f++)add(`fiscal_${d}_${f}`,S.fiscal(d,f),64,20,24);
-          for(let f=0;f<4;f++)add(`garimpeiro_${f}`,S.garimpeiro(f),64,20,24);
+          for(let f=0;f<4;f++){add(`garimpeiro_${f}`,S.bandido('run',f),64,20,24);add(`garimpeiro_dig_${f}`,S.bandido('dig',f),64,20,24)}
           add('balsa',S.balsa(),64,10,38);
           for(let f=0;f<4;f++)add(`escavadeira_${f}`,S.escavadeira(f),80,16,36);
           for(let f=0;f<4;f++)add(`dragagem_${f}`,S.dragagem(f),80,12,38);
@@ -18,7 +18,7 @@ async def main():
           add('bomb',S.bomb(false),48,12,35);add('bomb_red',S.bomb(true),48,12,35);
           add('heli',S.helicopter(),112,24,35);add('drone',S.drone(),64,10,40);
           // versoes grandes para a capa
-          add('fiscal_2_0_hd',S.fiscal(2,0),64,20,24,7);add('garimpeiro_0_hd',S.garimpeiro(0),64,20,24,6);
+          add('fiscal_2_0_hd',S.fiscal(2,0),64,20,24,7);add('garimpeiro_0_hd',S.bandido('run',0),64,20,24,6);
           add('balsa_hd',S.balsa(),64,10,38,5);add('escavadeira_0_hd',S.escavadeira(0),80,16,36,5);
           add('dragagem_0_hd',S.dragagem(0),80,12,38,4);add('bomb_hd',S.bomb(false),48,12,35,5);
           return A;}""")

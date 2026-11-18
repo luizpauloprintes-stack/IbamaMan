@@ -158,6 +158,53 @@ export function boss(enraged=false,windup=false){
   root.rotation.y=0;
   return root;
 }
+
+// ---------- garimpeiro bandido ----------
+const stripeTex=tex(64,64,(g,w,h)=>{for(let i=0;i<8;i++){g.fillStyle=i%2?"#1d1f22":"#e8e4d8";g.fillRect(0,i*8,w,8)}});
+export function bandido(mode="run",frame=0){
+  const dig=mode==="dig",phase=frame/4,root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  const swing=dig?[-2.5,-1.6,.25,-.6][frame]:0;      // picareta: ergue, desce, bate, volta
+  body.rotation.x=dig?[.05,.12,.42,.28][frame]:.08;  // curva o corpo ao bater
+  body.position.y=dig?0:Math.abs(Math.sin(phase*Math.PI*2))*.035;
+  body.add(legPair(0x3a3026,0x1a1512,dig?0:phase));
+  const shirt=M(0xffffff,{map:stripeTex,r:.8});
+  body.add(at(box(.35,.3,.24,shirt,.09),0,.42,0));
+  body.add(at(box(.37,.05,.25,M(0x2b2219),.015),0,.29,0));
+  // saco de ouro nas costas
+  const sack=grp(at(sph(.17,M(0x9b7448,{r:.95}),20,16),0,0,0,0,0,0,1,1.1,.9),
+    at(cyl(.06,.09,.06,M(0x7a5634,{r:.95})),0,.18,0),
+    at(sph(.05,M(0xffd34a,{m:.9,r:.2,e:0x8a6a10,ei:.4}),12,10),.03,.24,.02),
+    at(sph(.04,M(0xffe27a,{m:.9,r:.2,e:0x8a6a10,ei:.4}),12,10),-.04,.22,-.02),
+    at(new THREE.Mesh(new THREE.PlaneGeometry(.16,.12),new THREE.MeshStandardMaterial({map:textTex("$","#9b7448","#ffd34a",64,48,"900 40px Arial"),transparent:true})),0,.0,-.16,0,Math.PI));
+  body.add(at(sack,0,.5,-.2));
+  // bracos: picareta (garimpando) ou correndo
+  const pick=grp(at(cyl(.022,.022,.5,M(0x7a5232,{r:.8})),0,0,0),
+    at(new THREE.Mesh(new THREE.ConeGeometry(.035,.2,10),M(0x9aa3a6,{m:.8,r:.3})),.1,.24,0,0,0,-1.6),
+    at(new THREE.Mesh(new THREE.ConeGeometry(.035,.2,10),M(0x9aa3a6,{m:.8,r:.3})),-.1,.24,0,0,0,1.6));
+  if(dig){
+    for(const s of [-1,1]){
+      const sh=new THREE.Group();sh.position.set(s*.19,.52,.02);
+      sh.add(at(cap(.05,.13,shirt),0,-.1,0));sh.add(at(sph(.055,M(SKIN)),0,-.2,0));
+      sh.rotation.x=swing;sh.rotation.z=s*-.25;body.add(sh);
+    }
+    const holder=new THREE.Group();holder.position.set(0,.52,.02);holder.rotation.x=swing;body.add(holder);
+    holder.add(at(pick,0,-.36,.08,Math.PI/2+.2));
+  }else{
+    body.add(arm(-1,0x1d1f22,phase));body.add(arm(1,0x1d1f22,phase+.5));
+  }
+  // cabeca com touca ninja
+  const head=new THREE.Group();head.position.y=.76;body.add(head);
+  head.add(sph(.2,M(0x26282e,{r:.85})));
+  head.add(at(box(.32,.105,.12,M(SKIN,{r:.55}),.045),0,.0,.135));
+  for(const s of [-1,1]){
+    head.add(eye(s*.07,0,.195,1.2));
+    head.add(at(box(.1,.026,.02,M(0x0d0d0f)),s*.07,.058,.198,0,0,s*-.35));   // sobrancelha brava
+  }
+  head.add(at(sph(.035,M(0x2a2b30,{r:.85})),0,.2,0));
+  head.add(at(box(.12,.025,.02,M(0x2a2b30)),0,-.1,.19));                     // boca da touca
+  root.rotation.y=dig?.35:.62;
+  return root;
+}
 // ---------- maquinas ----------
 export function balsa(){
   const g=new THREE.Group();
@@ -317,5 +364,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true){
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,fiscal,garimpeiro,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,fiscal,garimpeiro,bandido,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;
