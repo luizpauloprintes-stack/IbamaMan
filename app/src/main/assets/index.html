@@ -38,9 +38,140 @@ body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-rig
 #menu.defeat .card{animation:show-defeat .3s .95s both}
 @keyframes show-defeat{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#menu.defeat .card{animation:none}}
+/* ---------- Capa e "Como jogar" ---------- */
+#cover{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+  padding:max(18px,env(safe-area-inset-top)) 22px max(16px,env(safe-area-inset-bottom));overflow:hidden;background:#0a1712;color:#fff8e4;text-align:center}
+#cover[hidden],#howto[hidden]{display:none}
+#cover-art{position:absolute;inset:0;width:100%;height:100%;z-index:-1}
+#cover-sound{position:absolute;top:max(12px,env(safe-area-inset-top));right:14px;width:44px;height:44px;padding:0;border-radius:50%;
+  font-size:20px;background:#0b1b15b0;border-color:#ffffff40}
+.logo{margin-top:clamp(18px,6vh,64px);position:relative;line-height:.86;user-select:none;animation:logo-in .7s cubic-bezier(.2,1.6,.4,1) both}
+.logo-fiscal{position:relative;z-index:2;display:block;font:900 clamp(40px,13vw,74px)/1 system-ui,"Roboto",sans-serif;letter-spacing:.06em;color:#fff6dc;
+  -webkit-text-stroke:2px #10221a;paint-order:stroke fill;text-shadow:0 4px 0 #10221a,0 8px 18px #000a}
+.logo-boom{position:relative;display:inline-block;margin-top:2px;transform:rotate(-5deg)}
+.logo-boom svg{position:absolute;left:50%;top:52%;width:118%;height:150%;transform:translate(-50%,-50%);z-index:-1;
+  filter:drop-shadow(0 6px 10px #0009);animation:burst 2.4s ease-in-out infinite}
+.logo-boom b{display:block;font:900 clamp(62px,21vw,124px)/1 system-ui,"Roboto",sans-serif;letter-spacing:.01em;
+  background:linear-gradient(180deg,#fff3a6 0%,#ffd04a 42%,#ff8a2b 78%,#e2531c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:3px #2a1206;paint-order:stroke fill;filter:drop-shadow(0 5px 0 #2a1206)}
+.logo-tag{position:relative;z-index:2;display:inline-block;margin-top:clamp(14px,3vh,24px);padding:6px 14px;border-radius:999px;background:#10221acc;border:1px solid #ffd37466;
+  font:700 12px ui-monospace,monospace;letter-spacing:.28em;color:#ffd374}
+.cover-actions{display:flex;flex-direction:column;gap:10px;width:min(320px,100%);margin-bottom:6px}
+.cover-actions button{border-radius:14px;padding:13px 18px;font:800 17px system-ui,sans-serif;letter-spacing:.04em}
+#cover-play{font-size:22px!important;padding:16px 18px!important;color:#2a1206;background:linear-gradient(180deg,#ffe58a,#ffb93d);border:0;
+  box-shadow:0 5px 0 #a8641a,0 10px 24px #000a;animation:pulse 1.8s ease-in-out infinite}
+#cover-play:active{transform:translateY(4px);box-shadow:0 1px 0 #a8641a}
+#cover-help,#cover-restart{background:#10221ad9;border:1px solid #9fc49a88;color:#f1f7e6}
+#cover-restart{font-size:14px!important;padding:9px!important}
+.cover-note{margin:8px 0 0;font:500 10.5px system-ui,sans-serif;color:#cfe0c8b0}
+@keyframes pulse{50%{transform:scale(1.035)}}
+@keyframes burst{50%{transform:translate(-50%,-50%) scale(1.06) rotate(4deg)}}
+@keyframes logo-in{from{opacity:0;transform:scale(.6)}}
+@media(prefers-reduced-motion:reduce){#cover-play,.logo,.logo-boom svg{animation:none}}
+
+#howto{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));background:#050d0ad9}
+#howto .sheet{width:min(460px,100%);max-height:100%;overflow:auto;background:#12281e;border:1px solid #658167;border-top:5px solid #ffd374;border-radius:14px;
+  padding:18px 16px 14px;text-align:left;color:#e8f1df;overscroll-behavior:contain}
+#howto h2{margin:0 0 4px;font:900 24px system-ui,sans-serif;color:#ffd374;text-align:center}
+#howto h3{margin:16px 0 8px;font:800 11px ui-monospace,monospace;letter-spacing:.2em;color:#a8c5ab;text-transform:uppercase}
+#howto p{margin:0 0 6px;font:500 14px/1.45 system-ui,sans-serif}
+#howto .rows{display:grid;gap:7px}
+#howto .row{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;font:500 13.5px/1.35 system-ui,sans-serif}
+#howto .row strong{color:#fff3c9}
+#howto .row small{color:#a8c5ab}
+#howto .ico{width:44px;height:44px;border-radius:10px;background:#0b1b15;border:1px solid #426249;display:grid;place-items:center;font:900 17px system-ui,sans-serif}
+#howto .ico canvas{width:40px;height:40px}
+#howto .chips{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#howto .chip{display:flex;align-items:center;gap:8px;font:600 12.5px system-ui,sans-serif}
+#howto .chip i{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:900 12px ui-monospace,monospace;font-style:normal;color:#152921}
+#howto-close{display:block;width:100%;margin-top:16px;padding:12px;border-radius:12px;font:800 16px system-ui,sans-serif;color:#2a1206;background:#ffd374;border:0}
+
+/* ---------- Celular deitado (horizontal) ---------- */
+@media (orientation:landscape) and (max-height:620px),(orientation:landscape) and (pointer:coarse){
+  body{padding:max(6px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));height:100dvh;overflow:hidden}
+  main{--bw:min(calc((100dvh - 62px) * 1.1538),calc(100vw - 380px));width:100%;height:100%;margin:0;display:grid;
+    grid-template-columns:minmax(0,1fr) var(--bw) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;
+    grid-template-areas:"head hud disc" "head arena notice" "obj arena ." "joy arena btns";column-gap:clamp(8px,2vw,22px)}
+  header{grid-area:head;flex-direction:column;align-items:flex-start;margin:0;gap:6px}
+  header strong{font-size:15px}
+  header div{display:flex;flex-wrap:wrap;gap:5px}header button{padding:6px 9px;font-size:12px}
+  #hud{grid-area:hud;padding:4px 2px;align-self:end}#hud b{font-size:13px;margin-top:1px}
+  #arena{grid-area:arena;align-self:start}
+  #touch{display:contents}
+  #joystick{grid-area:joy;align-self:end;justify-self:start;width:clamp(110px,34vh,150px)}
+  #knob{width:clamp(46px,14vh,60px);height:clamp(46px,14vh,60px)}
+  #flame,#charge{grid-area:btns;border-radius:50%;display:grid;place-items:center;padding:0;line-height:1.1;touch-action:none}
+  #flame{align-self:start;justify-self:start;width:clamp(64px,19vh,80px);height:clamp(64px,19vh,80px);font-size:13px;margin-left:4px}
+  #charge{align-self:end;justify-self:end;width:clamp(86px,27vh,112px);height:clamp(86px,27vh,112px);font-size:15px;margin-top:clamp(18px,8vh,40px)}
+  footer{display:contents}
+  #objective{grid-area:obj;align-self:start;margin-top:10px;font-size:12px;line-height:1.35;color:#d9e7d2}
+  .keys{display:none}
+  #notice{grid-area:notice;align-self:start;margin-top:10px;font-size:13px;text-align:right}
+  #disclaimer{grid-area:disc;margin:0;align-self:start;text-align:right;font-size:9.5px}
+  #menu{padding:8px}
+  #menu .card,#menu.victory .card{max-height:100%;overflow:auto;padding:10px 14px}
+  #menu h1,#menu.victory h1{font-size:clamp(18px,7vh,28px)!important;margin:2px 0 4px}
+  #subtitle{font-size:11px}
+  #desc{font-size:12.5px;margin:6px auto 10px}
+  #ending-art{max-height:19vh;margin-bottom:4px}
+
+  #cover{flex-direction:column;align-items:flex-start;justify-content:center;gap:clamp(10px,4vh,24px);padding-left:max(5vw,env(safe-area-inset-left))}
+  .logo,.cover-actions{width:min(46vw,440px)}
+  .logo{margin-top:0}
+  .logo-fiscal{font-size:clamp(30px,12vh,64px)}
+  .logo-boom b{font-size:clamp(50px,21vh,112px)}
+  .logo-tag{margin-top:clamp(8px,3vh,18px);font-size:11px}
+  .cover-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+  #cover-play{grid-column:1/-1;font-size:20px!important;padding:12px!important}
+  .cover-actions button{padding:10px 12px;font-size:15px}
+  #cover-restart{grid-column:auto}
+  .cover-note{grid-column:1/-1;margin:2px 0 0}
+  #cover-restart[hidden]+#cover-help{grid-column:1/-1}
+}
 </style>
 </head>
 <body>
+<div id="cover" role="dialog" aria-label="Fiscal Boom! — tela inicial">
+  <canvas id="cover-art" aria-hidden="true"></canvas>
+  <button id="cover-sound" aria-label="Som ligado">🔊</button>
+  <div class="logo">
+    <span class="logo-fiscal">FISCAL</span>
+    <span class="logo-boom">
+      <svg viewBox="0 0 200 120" aria-hidden="true"><polygon fill="#e2531c" points="100,2 116,30 150,8 142,40 196,34 158,58 198,82 146,80 160,116 118,92 100,118 84,92 40,114 56,80 4,84 44,60 6,36 58,40 50,8 84,30"/><polygon fill="#ffb93d" points="100,18 112,40 138,24 132,48 170,46 142,62 172,78 134,76 144,100 114,84 100,104 88,84 58,98 68,76 32,78 60,62 30,46 68,48 62,24 88,40"/></svg>
+      <b>BOOM!</b>
+    </span>
+    <div><span class="logo-tag">OPERAÇÃO AMAZÔNIA</span></div>
+  </div>
+  <div class="cover-actions">
+    <button id="cover-play">▶ JOGAR</button>
+    <button id="cover-restart" hidden>↻ Recomeçar do início</button>
+    <button id="cover-help">Como jogar</button>
+    <p class="cover-note">Jogo de humor, sem vínculo com órgãos públicos. Personagens fictícios.</p>
+  </div>
+</div>
+<div id="howto" hidden role="dialog" aria-label="Como jogar">
+  <div class="sheet">
+    <h2>Como jogar</h2>
+    <h3>Missão</h3>
+    <p>Destrua as máquinas do garimpo ilegal com bombas e lança-chamas e <strong>prenda os garimpeiros</strong> encostando neles. Sem alvos na área, a <strong>saída</strong> é liberada: vá até a bandeira para avançar.</p>
+    <p>São 4 fases (Rio, Garimpo, Acampamento e Plenário) e você tem 3 vidas.</p>
+    <h3>Controles</h3>
+    <div class="rows">
+      <div class="row"><span class="ico">🕹️</span><span><strong>Joystick</strong>: arraste para andar.</span></div>
+      <div class="row"><span class="ico" style="color:#ffd374">●</span><span><strong>Bomba</strong>: explode em cruz depois de alguns segundos. Saia da cruz luminosa!</span></div>
+      <div class="row"><span class="ico">🔥</span><span><strong>Fogo</strong>: lança-chamas em linha reta para a frente. Gasta combustível.</span></div>
+    </div>
+    <h3>Alvos</h3>
+    <div class="rows" id="howto-enemies"></div>
+    <h3>Bônus nas caixas</h3>
+    <div class="chips" id="howto-bonus"></div>
+    <h3>Chefe final</h3>
+    <div class="rows">
+      <div class="row"><span class="ico"><canvas width="80" height="80" data-boss></canvas></span><span><strong>Deputado Motosserra</strong>: desvie dos projetos de lei que ele arremessa e acerte com bombas (dano 2) ou fogo (dano 1).</span></div>
+    </div>
+    <button id="howto-close">Entendi!</button>
+  </div>
+</div>
 <main>
 <header><strong>Fiscal Boom!</strong><div><button id="sound" aria-pressed="false">Som ligado</button> <button id="pause">Pausa</button> <button id="reset" aria-label="Reiniciar campanha">↻</button></div></header>
 <div id="hud"><div><span>Fase</span><b id="stage"></b></div><div><span>Vidas</span><b id="lives"></b></div><div><span>Bombas</span><b id="ammo"></b></div><div><span>Alcance</span><b id="range"></b></div><div><span>Pontos</span><b id="score"></b></div><div><span>Tempo</span><b id="clock"></b></div><div><span>Fogo</span><b id="fuel"></b></div></div>
@@ -470,7 +601,7 @@ class Game {
     this.state=State.TITLE;
     this.audio=new Audio();
     this.input=new Input(this);
-    this.renderer=new Renderer(document.querySelector("canvas"));
+    this.renderer=new Renderer(document.querySelector("#arena canvas"));
     this.hud=new HUD();
     this.player=new Player();
     this.score=0;this.lives=3;
@@ -1222,13 +1353,210 @@ class Renderer {
     }
   }
 }
+// ---------- Capa animada e tela "Como jogar" ----------
+// Reaproveita os desenhos do jogo (Renderer) para montar a cena da capa.
+class Cover {
+  constructor(game){
+    this.game=game;
+    this.el=$("cover");this.howto=$("howto");
+    this.canvas=$("cover-art");this.ctx=this.canvas.getContext("2d");
+    this.art=new Renderer(document.createElement("canvas"));
+    this.reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.running=false;this.t0=performance.now();
+    this.leaves=Array.from({length:14},(_,i)=>({x:(i*37%100)/100,s:.6+(i*13%7)/10,phase:i*1.7}));
+    $("cover-play").onclick=()=>this.play();
+    $("cover-restart").onclick=()=>{this.hide();this.game.start()};
+    $("cover-help").onclick=()=>this.openHelp();
+    $("howto-close").onclick=()=>this.closeHelp();
+    this.howto.addEventListener("click",e=>{if(e.target===this.howto)this.closeHelp()});
+    $("cover-sound").onclick=()=>{$("sound").click();this.syncSound()};
+    window.addEventListener("resize",()=>this.resize());
+    window.addEventListener("keydown",e=>{
+      if(e.code==="Escape"&&!this.howto.hidden){e.preventDefault();this.closeHelp()}
+    });
+    this.buildHelp();
+    this.resize();
+    this.show();
+  }
+  get visible(){return !this.el.hidden}
+  syncSound(){
+    const muted=this.game.audio.muted;
+    $("cover-sound").textContent=muted?"🔇":"🔊";
+    $("cover-sound").setAttribute("aria-label",muted?"Som desligado":"Som ligado");
+  }
+  show(){
+    const paused=this.game.state===State.PAUSED;
+    $("cover-play").textContent=paused?"▶ CONTINUAR":"▶ JOGAR";
+    $("cover-restart").hidden=!paused;
+    this.syncSound();
+    this.el.hidden=false;
+    if(!this.running){this.running=true;requestAnimationFrame(t=>this.loop(t))}
+  }
+  hide(){this.el.hidden=true;this.running=false;this.closeHelp()}
+  play(){
+    const paused=this.game.state===State.PAUSED;
+    this.hide();
+    if(paused)this.game.pause();else this.game.start();
+  }
+  openHelp(){this.howto.hidden=false;this.howto.querySelector(".sheet").scrollTop=0;$("howto-close").focus({preventScroll:true})}
+  closeHelp(){
+    if(this.howto.hidden)return false;
+    this.howto.hidden=true;
+    if(this.visible)$("cover-help").focus({preventScroll:true});
+    return true;
+  }
+  // Botao voltar do Android: fecha a ajuda, pausa a partida ou volta para a capa.
+  back(){
+    if(this.closeHelp())return true;
+    if(this.game.state===State.PLAYING){this.game.pause();this.show();return true}
+    if(!this.visible){this.show();return true}
+    return false;
+  }
+  buildHelp(){
+    const enemies=[
+      ["balsa","Balsa de garimpo","220 pts · destrua com bomba ou fogo"],
+      ["escavadeira","Escavadeira","360 pts · destrua com bomba ou fogo"],
+      ["dragagem","Draga","850 pts · aguenta 3 acertos"],
+      ["garimpeiro","Garimpeiro","180 pts · não explode: encoste para prender (Teje preso!)"]
+    ];
+    $("howto-enemies").innerHTML=enemies.map(([type,name,info])=>
+      `<div class="row"><span class="ico"><canvas width="80" height="80" data-enemy="${type}"></canvas></span><span><strong>${name}</strong><br><small>${info}</small></span></div>`).join("");
+    $("howto-bonus").innerHTML=TYPES.map(([icon,name,color])=>
+      `<div class="chip"><i style="background:${color}">${icon}</i><span>${name}</span></div>`).join("");
+    for(const canvas of this.howto.querySelectorAll("canvas")){
+      const c=canvas.getContext("2d");
+      c.translate(40,44);
+      if(canvas.dataset.boss!==undefined){
+        c.scale(.95,.95);
+        this.art.drawBoss(c,{x:-.5,y:-.5,hp:12,maxHp:12,mode:"windup",flash:0,papers:[]},0);
+      }else{
+        c.scale(1.45,1.45);
+        this.art.enemy(c,{type:canvas.dataset.enemy,dir:1,hp:3},0);
+      }
+    }
+  }
+  resize(){
+    const dpr=Math.min(window.devicePixelRatio||1,2.5);
+    this.w=window.innerWidth;this.h=window.innerHeight;
+    this.canvas.width=Math.round(this.w*dpr);this.canvas.height=Math.round(this.h*dpr);
+    this.ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(this.visible&&!this.running)this.draw(0);
+  }
+  loop(now){
+    if(!this.running)return;
+    this.draw(this.reduced?0:(now-this.t0)/1000);
+    if(this.reduced){this.running=false;return}
+    requestAnimationFrame(t=>this.loop(t));
+  }
+  sprite(c,x,y,scale,draw){
+    c.save();c.translate(x,y);c.scale(scale,scale);draw(c);c.restore();
+  }
+  draw(t){
+    const c=this.ctx,w=this.w,h=this.h,a=this.art;
+    // Deitado: logo e botoes a esquerda, cena a direita. Em pe: logo em cima, botoes embaixo.
+    const land=w>h;
+    const L=land?{horizon:.46,riverTop:.50,riverBottom:.66,sun:.86,boat:[.90,.55],dredge:[.60,.30],digger:[.55,.30],miner:[.93,.40],agent:[.75,.42],u:h/400}
+                :{horizon:.50,riverTop:.535,riverBottom:.64,sun:.72,boat:[.80,.55],dredge:[.20,.35],digger:[.17,.20],miner:[.86,.20],agent:[.47,.20],u:Math.min(w/390,h/760)};
+    const horizon=h*L.horizon,riverTop=h*L.riverTop,riverBottom=h*L.riverBottom;
+    const u=L.u;                              // escala base dos desenhos
+    // Ceu de fim de tarde
+    let g=c.createLinearGradient(0,0,0,horizon);
+    g.addColorStop(0,"#0b1f18");g.addColorStop(.45,"#1f4a36");g.addColorStop(.82,"#c98a45");g.addColorStop(1,"#f6c46a");
+    c.fillStyle=g;c.fillRect(0,0,w,horizon+2);
+    // Sol
+    const sx=w*L.sun,sy=horizon-8*u;
+    g=c.createRadialGradient(sx,sy,0,sx,sy,120*u);
+    g.addColorStop(0,"#fff4c2");g.addColorStop(.22,"#ffd77acc");g.addColorStop(1,"#ffd77a00");
+    c.fillStyle=g;c.fillRect(0,0,w,horizon);
+    a.ellipse(c,"#fff1bb",sx,sy,22*u,22*u);
+    // Morros e mata ao longe
+    for(const [color,base,amp,step,off] of [["#5f7d55",horizon-26*u,16,46,0],["#3f6345",horizon-10*u,14,34,17],["#284b35",horizon+4*u,12,26,5]]){
+      c.fillStyle=color;c.beginPath();c.moveTo(0,horizon+20*u);
+      for(let x=-20;x<=w+40;x+=step*u){
+        const y=base-Math.abs(Math.sin((x/u+off*7)*.031))*amp*u-(Math.sin((x/u+off)*.009)+1)*6*u;
+        c.quadraticCurveTo(x-step*u/2,y-10*u,x,y);
+      }
+      c.lineTo(w,horizon+20*u);c.closePath();c.fill();
+    }
+    // Copas na margem de la
+    for(let x=-10;x<w+30;x+=18*u){
+      const k=(x/u*7)%11;
+      a.ellipse(c,"#1b3a29",x,riverTop-6*u-k*.6*u,16*u,12*u);
+      a.ellipse(c,"#2c5638",x-4*u,riverTop-12*u-k*.6*u,10*u,7*u);
+    }
+    // Rio
+    g=c.createLinearGradient(0,riverTop,0,riverBottom);
+    g.addColorStop(0,"#e2b268");g.addColorStop(.18,"#4d97a6");g.addColorStop(1,"#1f5f73");
+    c.fillStyle=g;c.fillRect(0,riverTop,w,riverBottom-riverTop);
+    c.globalAlpha=.55;
+    for(let i=0;i<22;i++){
+      const ry=riverTop+((i*37)%100)/100*(riverBottom-riverTop),len=(14+i%5*8)*u;
+      const rx=((i*83+t*(10+i%4*5))%(w+60))-30;
+      a.line(c,i%3?"#bfe8e4":"#ffe2a0",1.4*u,rx,ry,rx+len,ry);
+    }
+    c.globalAlpha=1;
+    // Reflexo do sol
+    for(let i=0;i<6;i++){
+      const ry=riverTop+6*u+i*7*u,rw=(26-i*3)*u*(1+.15*Math.sin(t*2+i));
+      a.rect(c,"#fff1bb88",sx-rw/2,ry,rw,1.6*u);
+    }
+    // Balsa e draga no rio
+    const bob=Math.sin(t*2.2)*1.6*u;
+    this.sprite(c,w*L.boat[0],riverTop+(riverBottom-riverTop)*L.boat[1]+bob,2.1*u,s=>a.enemy(s,{type:"balsa"},t));
+    this.sprite(c,w*L.dredge[0],riverTop+(riverBottom-riverTop)*L.dredge[1]-bob*.6,1.35*u,s=>a.enemy(s,{type:"dragagem",hp:3},t));
+    // Margem de ca
+    g=c.createLinearGradient(0,riverBottom,0,h);
+    g.addColorStop(0,"#56613a");g.addColorStop(.25,"#3e4a2c");g.addColorStop(1,"#0d1a12");
+    c.fillStyle=g;c.beginPath();c.moveTo(0,riverBottom+6*u);
+    for(let x=0;x<=w+20;x+=20*u)c.lineTo(x,riverBottom+Math.sin(x/u*.08)*4*u);
+    c.lineTo(w,h);c.lineTo(0,h);c.closePath();c.fill();
+    a.rect(c,"#c8d9a355",0,riverBottom-1,w,2*u);
+    for(let i=0;i<40;i++){
+      const gx=((i*61)%100)/100*w,gy=riverBottom+12*u+((i*29)%100)/100*(h-riverBottom)*.5;
+      a.line(c,i%2?"#293e29":"#779057",1.5*u,gx-4*u,gy-5*u,gx,gy,gx+4*u,gy-7*u);
+    }
+    // Escavadeira e garimpeiro fugindo
+    const feet=riverBottom+(h-riverBottom)*L.agent[1];
+    this.sprite(c,w*L.digger[0],riverBottom+(h-riverBottom)*L.digger[1]-6*u,2.3*u,s=>a.enemy(s,{type:"escavadeira",dir:1},t));
+    const run=Math.abs(Math.sin(t*6))*3*u;
+    this.sprite(c,w*L.miner[0],riverBottom+(h-riverBottom)*L.miner[1]-2*u-run,2.1*u,s=>a.enemy(s,{type:"garimpeiro"},t));
+    // Fiscal com a bomba
+    const fx=w*L.agent[0],fy=feet+4*u,breathe=Math.sin(t*3)*1.2*u;
+    a.ellipse(c,"#0a140e88",fx+14*u,fy+68*u,74*u,12*u);
+    this.sprite(c,fx,fy+breathe,3.3*u,s=>a.agent(s,{safe:0,shield:false,progress:1,dir:2},t));
+    this.sprite(c,fx+64*u,fy+30*u,2.2*u,s=>a.ball(s,0,0,14,t));
+    // Folhas caindo
+    c.globalAlpha=.85;
+    for(const leaf of this.leaves){
+      const ly=((t*18*leaf.s+leaf.phase*60)%(h*.62))-20,lx=leaf.x*w+Math.sin(t*1.3+leaf.phase)*18*u;
+      c.save();c.translate(lx,ly);c.rotate(Math.sin(t*2+leaf.phase));
+      a.ellipse(c,leaf.s>1?"#9cbf5f":"#5f8f45",0,0,5*u*leaf.s,2.4*u*leaf.s);c.restore();
+    }
+    c.globalAlpha=1;
+    // Moldura de folhagem
+    for(const [x,y,r,col] of [[-10,-6,60,"#0b2016"],[40,-26,48,"#123222"],[w+8,-10,58,"#0b2016"],[w-44,-30,44,"#163a27"],[-24,h*.30,40,"#0d2419"],[w+22,h*.34,42,"#0d2419"]])
+      a.ellipse(c,col,x,y,r*u,r*.8*u);
+    // Escurece a area dos botoes (embaixo em pe; a esquerda deitado)
+    if(land){
+      g=c.createLinearGradient(0,0,w*.62,0);
+      g.addColorStop(0,"#0a1712e6");g.addColorStop(.6,"#0a171299");g.addColorStop(1,"#0a171200");
+      c.fillStyle=g;c.fillRect(0,0,w*.62,h);
+    }else{
+      g=c.createLinearGradient(0,h*.62,0,h);
+      g.addColorStop(0,"#0a171200");g.addColorStop(.55,"#0a1712aa");g.addColorStop(1,"#0a1712f2");
+      c.fillStyle=g;c.fillRect(0,h*.62,w,h*.38);
+    }
+  }
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
   const game=window.fiscalBoomGame=new Game();
+  const cover=window.fiscalBoomCover=new Cover(game);
   // Pausa quando o app vai para segundo plano.
   window.fiscalBoomPause=()=>{if(game.state===State.PLAYING)game.pause()};
   document.addEventListener("visibilitychange",()=>{if(document.hidden)window.fiscalBoomPause()});
   // Botao voltar do Android: pausa durante a partida; fora dela, deixa o app fechar.
-  window.fiscalBoomBack=()=>{if(game.state===State.PLAYING){game.pause();return true}return false};
+  window.fiscalBoomBack=()=>cover.back();
 });
 </script>
 </body>

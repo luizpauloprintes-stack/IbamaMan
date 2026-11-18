@@ -13,9 +13,11 @@ O Android vai pedir para permitir "instalar apps desconhecidos" na primeira vez.
 ## Como funciona
 
 - O jogo inteiro está em `app/src/main/assets/index.html`: HTML + canvas, com imagens e sons embutidos. Roda offline.
-- `MainActivity.java` abre esse arquivo numa WebView em tela cheia, na vertical.
-- Botão **voltar**: pausa durante a partida; fora dela, fecha o app. Sair do app também pausa.
-- Controles: joystick e botões **Fogo** e **Bomba** na tela.
+- `MainActivity.java` abre esse arquivo numa WebView em tela cheia, **na horizontal** (gira para os dois lados).
+- Abre numa **capa animada** (logo, cena do rio com o fiscal) com os botões **Jogar** e **Como jogar**.
+- Na partida: joystick à esquerda, tabuleiro no centro, botões **Fogo** e **Bomba** à direita.
+- Botão **voltar**: fecha a ajuda; durante a partida, pausa e volta à capa (com "Continuar"); na capa, fecha o app. Sair do app também pausa.
+- No navegador, em pé, o layout continua o vertical original.
 
 Para testar o jogo no computador, basta abrir `app/src/main/assets/index.html` no navegador.
 
