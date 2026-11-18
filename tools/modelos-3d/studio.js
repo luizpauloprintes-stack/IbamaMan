@@ -1,0 +1,321 @@
+// Estudio 3D do Fiscal Boom!: modela personagens e objetos com Three.js
+// e gera sprites (visao de cima 3/4) com fundo transparente.
+import * as THREE from "three";
+import {RoundedBoxGeometry} from "three/addons/geometries/RoundedBoxGeometry.js";
+
+const TILE=48, ELEV=Math.atan2(1,.72);        // altura projetada = 0,72 x altura real
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+renderer.setClearColor(0x000000,0);
+
+// ---------- materiais e formas ----------
+const M=(color,o={})=>new THREE.MeshStandardMaterial({color,roughness:o.r??.62,metalness:o.m??0,emissive:o.e??0x000000,emissiveIntensity:o.ei??1,map:o.map||null,transparent:!!o.t,opacity:o.t??1});
+const box=(w,h,d,mat,r=.03,seg=3)=>new THREE.Mesh(new RoundedBoxGeometry(w,h,d,seg,Math.min(r,w/2-.001,h/2-.001,d/2-.001)),mat);
+const sph=(r,mat,ws=32,hs=24)=>new THREE.Mesh(new THREE.SphereGeometry(r,ws,hs),mat);
+const cyl=(rt,rb,h,mat,seg=28)=>new THREE.Mesh(new THREE.CylinderGeometry(rt,rb,h,seg),mat);
+const cap=(r,len,mat)=>new THREE.Mesh(new THREE.CapsuleGeometry(r,len,8,20),mat);
+const at=(m,x,y,z,rx=0,ry=0,rz=0,sx=1,sy=sx,sz=sx)=>{m.position.set(x,y,z);m.rotation.set(rx,ry,rz);m.scale.set(sx,sy,sz);return m};
+const grp=(...ch)=>{const g=new THREE.Group();ch.forEach(c=>g.add(c));return g};
+const tex=(w,h,draw)=>{const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t};
+
+// texturas
+const woodTex=(base="#b5793f",line="#7a4a24")=>tex(128,128,(g,w,h)=>{g.fillStyle=base;g.fillRect(0,0,w,h);
+  for(let i=0;i<4;i++){g.fillStyle=line;g.fillRect(0,i*32+30,w,3)}
+  g.globalAlpha=.25;for(let i=0;i<60;i++){g.fillStyle=i%2?"#fff3d0":"#3d2410";g.fillRect(Math.random()*w,Math.random()*h,8+Math.random()*30,1)}});
+const barkTex=tex(128,64,(g,w,h)=>{g.fillStyle="#6b4527";g.fillRect(0,0,w,h);
+  for(let i=0;i<70;i++){g.fillStyle=i%3?"#4a2e17":"#8a6038";g.fillRect(Math.random()*w,Math.random()*h,10+Math.random()*25,2)}});
+const ringTex=tex(64,64,(g,w,h)=>{g.fillStyle="#e2b47a";g.beginPath();g.arc(32,32,32,0,7);g.fill();
+  g.strokeStyle="#a8784a";g.lineWidth=2;for(const r of [8,14,20,26]){g.beginPath();g.arc(32,32,r,0,7);g.stroke()}
+  g.fillStyle="#8a5e36";g.beginPath();g.arc(32,32,3,0,7);g.fill()});
+const textTex=(text,bg,fg,w=128,h=48,font="900 30px Arial")=>tex(w,h,(g)=>{g.fillStyle=bg;g.fillRect(0,0,w,h);g.fillStyle=fg;g.font=font;g.textAlign="center";g.textBaseline="middle";g.fillText(text,w/2,h/2+2)});
+
+// ---------- personagens ----------
+const SKIN=0xe8ad80;
+function eye(x,y,z,s=1){return grp(at(sph(.032,M(0x1a1410,{r:.3}),16,12),x,y,z,0,0,0,s,s*1.25,s*.6),at(sph(.011,M(0xffffff,{e:0xffffff,ei:.6}),8,6),x-.01*s,y+.014*s,z+.018))}
+function legPair(pants,boot,phase){
+  const g=new THREE.Group();
+  for(const s of [-1,1]){
+    const hip=new THREE.Group();hip.position.set(s*.075,.25,0);
+    hip.add(at(cap(.062,.11,M(pants)),0,-.1,0));
+    hip.add(at(box(.12,.075,.18,M(boot,{r:.45}),.03),0,-.2,.025));
+    hip.rotation.x=Math.sin(phase*Math.PI*2)*.55*s;
+    g.add(hip);
+  }
+  return g;
+}
+function arm(side,sleeve,phase,extra){
+  const sh=new THREE.Group();sh.position.set(side*.2,.52,0);
+  sh.add(at(cap(.052,.13,M(sleeve)),0,-.1,0));
+  sh.add(at(sph(.058,M(SKIN)),0,-.21,0));
+  if(extra)sh.add(extra);
+  sh.rotation.x=-Math.sin(phase*Math.PI*2)*.5*side;sh.rotation.z=side*.12;
+  return sh;
+}
+export function fiscal(dir=2,frame=0){
+  const phase=frame?(frame-1)/4:0, root=new THREE.Group(), body=new THREE.Group();
+  root.add(body);
+  body.position.y=frame?Math.abs(Math.sin(phase*Math.PI*2))*.03:0;
+  body.add(legPair(0x2f3b2c,0x1d1a17,phase));
+  // tronco: camisa + colete
+  body.add(at(box(.36,.3,.24,M(0xc2a873),.08),0,.42,0));
+  const vest=M(0x56733a,{r:.7});
+  body.add(at(box(.37,.27,.25,vest,.08),0,.41,0));
+  const stripe=M(0xeaf27c,{e:0x8a8f20,ei:.35,r:.3});
+  body.add(at(box(.375,.035,.255,stripe,.012),0,.37,0));
+  body.add(at(box(.38,.05,.26,M(0x2b2219),.015),0,.29,0));         // cinto
+  body.add(at(box(.06,.04,.02,M(0xd9b25a,{m:.8,r:.3}),.008),0,.29,.13));
+  // bolsos, distintivo, ziper
+  for(const s of [-1,1])body.add(at(box(.085,.07,.02,M(0x44602b),.01),s*.09,.44,.125));
+  body.add(at(box(.012,.22,.01,M(0xd8c99a)),0,.43,.128));
+  body.add(at(cyl(.025,.025,.012,M(0xffd56a,{m:.9,r:.25})),.11,.5,.13,Math.PI/2));
+  // costas: FISCAL
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(.3,.1),new THREE.MeshStandardMaterial({map:textTex("FISCAL","#2c3d22","#f4f7cf",160,52,"900 34px Arial"),roughness:.7}));
+  body.add(at(back,0,.45,-.128,0,Math.PI));
+  // radio no ombro
+  body.add(at(box(.06,.09,.05,M(0x22302a),.015),-.17,.56,.07));
+  body.add(at(sph(.012,M(0x7dff8a,{e:0x3dff5a,ei:1})),-.17,.62,.09));
+  // bracos
+  body.add(arm(-1,0xb39a66,phase));body.add(arm(1,0xb39a66,phase));
+  // cabeca
+  const head=new THREE.Group();head.position.y=.76;body.add(head);
+  head.add(sph(.2,M(SKIN,{r:.55})));
+  head.add(at(sph(.2,M(0x3a2618)),0,-.02,-.03,0,0,0,1.0,.9,.95));     // cabelo atras
+  head.add(at(sph(.2,M(SKIN,{r:.55})),0,0,.01));
+  for(const s of [-1,1]){
+    head.add(eye(s*.072,-.035,.18,1.1));
+    head.add(at(sph(.03,M(0xf08f7a,{t:.6})),s*.12,-.09,.15,0,0,0,1,.6,.5));
+    head.add(at(sph(.04,M(SKIN)),s*.2,-.01,0,0,0,0,.5,.8,.6));          // orelhas
+  }
+  head.add(at(sph(.022,M(0xdc9670)),0,-.07,.2));
+  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.035,.009,8,16,Math.PI),M(0x8a3e2c)),0,-.115,.175,Math.PI,0,0));
+  // bone
+  const capMat=M(0x64823c,{r:.7});
+  head.add(at(new THREE.Mesh(new THREE.SphereGeometry(.218,32,16,0,Math.PI*2,0,Math.PI/2),capMat),0,.075,-.005,0,0,0,1,.92,1));
+  head.add(at(cyl(.218,.218,.03,capMat,32),0,.085,0));
+  head.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.17,.17,.025,32,1,false,-Math.PI/2,Math.PI),M(0x3c5224)),0,.08,.13,.18,0,0,1,1,.9));
+  head.add(at(cyl(.04,.04,.012,M(0xffd56a,{m:.8,r:.3})),0,.18,.17,Math.PI/2.4));
+  head.add(at(sph(.024,capMat),0,.28,0));
+  root.rotation.y=[Math.PI,Math.PI/2,0,-Math.PI/2][dir];
+  return root;
+}
+export function garimpeiro(frame=0){
+  const phase=frame/4,root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  body.position.y=Math.abs(Math.sin(phase*Math.PI*2))*.035;
+  body.add(legPair(0x3d5a8a,0x3b2a1c,phase));
+  body.add(at(box(.34,.3,.23,M(0xe5763a,{r:.75}),.09),0,.42,0));
+  body.add(at(box(.12,.05,.02,M(0xffffff,{t:.25})),-.06,.5,.12));
+  body.add(arm(-1,0xe5763a,phase));
+  const pan=at(grp(at(cyl(.13,.08,.04,M(0x9aa3a6,{m:.7,r:.35})),0,0,0),at(cyl(.09,.06,.01,M(0xe8c35a,{m:.6,r:.3})),0,.02,0)),0,-.26,.09,.5);
+  body.add(arm(1,0xe5763a,phase+.5,pan));
+  const head=new THREE.Group();head.position.y=.74;body.add(head);
+  head.add(sph(.19,M(0xd89a6d,{r:.55})));
+  for(const s of [-1,1])head.add(eye(s*.068,.0,.17,.95));
+  head.add(at(cap(.025,.1,M(0x3a2418)),0,-.065,.175,0,0,Math.PI/2));
+  head.add(at(sph(.026,M(0xc4825a)),0,-.035,.19));
+  // chapeu de palha
+  const straw=M(0xe6c06a,{r:.85}),band=M(0x8a3b26);
+  head.add(at(cyl(.32,.32,.025,straw,40),0,.09,0));
+  head.add(at(cyl(.14,.16,.14,straw,32),0,.17,0));
+  head.add(at(cyl(.162,.162,.035,band,32),0,.12,0));
+  root.rotation.y=.62;
+  return root;
+}
+export function boss(enraged=false,windup=false){
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);body.scale.setScalar(1.45);
+  body.add(legPair(0x1b2233,0x120f0c,0));
+  const suit=M(0x24314f,{r:.55});
+  body.add(at(box(.44,.36,.28,suit,.12),0,.44,0));
+  body.add(at(new THREE.Mesh(new THREE.ConeGeometry(.09,.22,3),M(0xf5f1dd)),0,.53,.13,Math.PI,0,0,1,1,.3));
+  body.add(at(box(.045,.2,.02,M(0xc42f45),.01),0,.47,.15));
+  body.add(at(box(.07,.012,.01,M(0xd8b45a,{m:.8})),-.13,.52,.145));
+  // motosserra na mao direita
+  const saw=grp(at(box(.16,.12,.1,M(0xf07d1e,{r:.45}),.03),0,0,0),at(box(.07,.05,.06,M(0x2a2c2b),.02),0,.08,0),
+    at(box(.3,.04,.06,M(0xb9bfbd,{m:.85,r:.25}),.02),.21,0,0));
+  for(let i=0;i<8;i++)saw.add(at(box(.02,.015,.065,M(0x3a3d3f)),.08+i*.035,.025*(i%2?1:-1),0));
+  body.add(arm(1,0x24314f,0,at(saw,.1,-.24,.05,0,-.3,windup?.9:.2)));
+  const paper=at(new THREE.Mesh(new THREE.PlaneGeometry(.2,.26),new THREE.MeshStandardMaterial({map:textTex("PL","#fff6dd","#a3322b",64,84,"900 40px Arial"),side:THREE.DoubleSide,roughness:.8})),0,0,0);
+  const left=arm(-1,0x24314f,0,null);if(windup){left.rotation.x=-2.7;left.rotation.z=-.25;body.add(at(paper,-.26,1.12,.16,-.15,0,.18))}
+  body.add(left);
+  const head=new THREE.Group();head.position.y=.8;body.add(head);
+  const skin=enraged?0xe8604f:0xeab385;
+  head.add(at(sph(.22,M(skin,{r:.5})),0,0,0,0,0,0,1.05,1,1));
+  for(const s of [-1,1]){
+    head.add(at(sph(.05,M(skin)),s*.22,0,0,0,0,0,.5,.8,.6));
+    if(enraged){head.add(at(sph(.04,M(0xfff2d8)),s*.08,.02,.19,0,0,0,1,.7,.5));head.add(at(sph(.016,M(0x1c1714)),s*.08,.02,.215))}
+    else head.add(eye(s*.08,.02,.2,1.05));
+    head.add(at(box(.1,.02,.02,M(0x392723)),s*.08,.1,.2,0,0,enraged?-s*.45:s*.08));
+  }
+  head.add(at(sph(.035,M(enraged?0xc84a3c:0xd99a70)),0,-.03,.22));
+  if(enraged)head.add(at(box(.12,.04,.02,M(0x5a1d26),.015),0,-.11,.2));
+  else head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.055,.012,8,16,Math.PI),M(0x763529)),0,-.1,.19,Math.PI,0,0));
+  // chapeu de fazendeiro
+  const hat=M(0xb98450,{r:.75});
+  head.add(at(cyl(.36,.36,.035,hat,40),0,.14,0,0,0,0,1,1,.85));
+  head.add(at(cyl(.17,.2,.2,hat,32),0,.25,0));
+  head.add(at(cyl(.203,.203,.045,M(0x5a3622),32),0,.17,0));
+  root.rotation.y=0;
+  return root;
+}
+// ---------- maquinas ----------
+export function balsa(){
+  const g=new THREE.Group();
+  const deck=box(.92,.1,.66,M(0xa0703f,{map:woodTex("#a3713f","#6b4325")}),.03);g.add(at(deck,0,.12,0));
+  for(const z of [-.27,.27])g.add(at(cyl(.09,.09,.86,M(0x3c74a0,{r:.4}),24),0,.06,z,0,0,Math.PI/2));
+  // barraco com lona azul
+  g.add(at(box(.36,.22,.34,M(0xc89a62,{map:woodTex("#cfa067","#8a5e36")}),.02),-.16,.28,-.04));
+  const tarpM=M(0x2f7fc1,{r:.55});
+  for(const s of [-1,1])g.add(at(box(.44,.025,.26,tarpM,.01),-.16,.45,-.04+s*.09,s*.6,0,0));
+  g.add(at(box(.1,.12,.02,M(0x2a1d14)),-.16,.26,.135));
+  // motor, cano de escape e mangote
+  g.add(at(box(.2,.16,.18,M(0x5b5f61,{m:.6,r:.4}),.03),.22,.25,.1));
+  g.add(at(cyl(.025,.025,.2,M(0x3a3d3f,{m:.5})),.28,.4,.06));
+  const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(.3,.22,.15),new THREE.Vector3(.48,.2,.2),new THREE.Vector3(.52,.02,.24)]);
+  g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,20,.035,12),M(0x8f9493,{r:.5})));
+  g.rotation.y=-.35;return g;
+}
+export function escavadeira(frame=0){
+  const g=new THREE.Group(),dig=Math.sin(frame/4*Math.PI*2)*.28;
+  const track=M(0x2a2c2b,{r:.8});
+  for(const z of [-.2,.2]){
+    g.add(at(box(.72,.16,.15,track,.07),0,.08,z));
+    for(let i=0;i<4;i++)g.add(at(cyl(.045,.045,.155,M(0x7a7f7b,{m:.5})),-.24+i*.16,.08,z,Math.PI/2));
+  }
+  const yel=M(0xf2b232,{r:.45});
+  g.add(at(box(.56,.2,.44,yel,.05),-.04,.27,0));
+  g.add(at(box(.12,.18,.44,M(0x8e6a2a,{r:.5}),.04),-.31,.3,0));
+  g.add(at(box(.24,.26,.28,yel,.04),-.1,.48,.06));
+  g.add(at(box(.2,.17,.29,M(0x7fc3d6,{r:.1,m:.2}),.02),-.07,.51,.065));
+  g.add(at(cyl(.022,.022,.2,M(0x3a3d3f)),-.25,.52,-.12));
+  // braco articulado
+  const boom=new THREE.Group();boom.position.set(.18,.36,-.05);boom.rotation.z=.55+dig;g.add(boom);
+  boom.add(at(box(.42,.08,.09,yel,.03),.2,0,0));
+  const stick=new THREE.Group();stick.position.set(.4,0,0);stick.rotation.z=-1.6-dig*1.4;boom.add(stick);
+  stick.add(at(box(.3,.065,.075,M(0xe8a133,{r:.45}),.025),.14,0,0));
+  const bucket=grp(at(box(.12,.12,.16,M(0x8a8f8c,{m:.6,r:.4}),.03),0,0,0),at(box(.08,.06,.14,M(0x6b4a2c)),.01,.03,0));
+  stick.add(at(bucket,.3,-.02,0,0,0,-.5));
+  g.rotation.y=-.3;return g;
+}
+export function dragagem(frame=0){
+  const g=new THREE.Group();
+  g.add(at(box(.96,.18,.7,M(0xb85a32,{r:.6}),.05),0,.1,0));
+  g.add(at(box(.98,.03,.72,M(0x6e2f19)),0,.2,0));
+  g.add(at(box(.42,.3,.42,M(0xe6e1cf,{r:.5}),.04),-.12,.37,0));
+  for(const x of [-.22,-.03])g.add(at(box(.13,.09,.02,M(0x5aa2c0,{r:.1,m:.3})),x,.42,.215));
+  g.add(at(box(.48,.05,.48,M(0x9a4a2a),.02),-.12,.54,0));
+  g.add(at(cyl(.045,.05,.26,M(0x3a3d3f,{m:.4})),.08,.62,-.12));
+  g.add(at(cyl(.052,.052,.04,M(0xd8452e)),.08,.66,-.12));
+  // escada de corte com cabeca giratoria (frente = +x)
+  const ladder=at(box(.4,.06,.08,M(0x8f9493,{m:.6,r:.4}),.02),.5,.12,0,0,0,-.35);g.add(ladder);
+  const head=new THREE.Group();head.position.set(.68,.02,0);g.add(head);
+  head.add(at(sph(.075,M(0x5b5f61,{m:.6}),16,12),0,0,0));
+  for(let i=0;i<6;i++){const b=at(box(.03,.16,.03,M(0x8a8f8c,{m:.7})),0,0,0,i/6*Math.PI*2+frame/4*Math.PI/3,0,0);b.translateY(.07);head.add(b)}
+  head.rotation.z=Math.PI/2;
+  g.rotation.y=-.3;return g;
+}
+export function helicopter(){
+  const g=new THREE.Group(),green=M(0x6c8f45,{r:.45});
+  g.add(at(sph(.3,green),0,.35,0,0,0,0,1.25,.85,.9));
+  g.add(at(sph(.2,M(0x9ed6e6,{r:.05,m:.3})),.2,.38,0,0,0,0,1,.85,.95));
+  g.add(at(cyl(.05,.08,.6,green),-.5,.4,0,0,0,Math.PI/2));
+  g.add(at(box(.04,.18,.14,green,.02),-.8,.48,0));
+  for(const z of [-.2,.2]){g.add(at(cyl(.015,.015,.6,M(0x2a332f)),0,.08,z,0,0,Math.PI/2));
+    for(const x of [-.15,.15])g.add(at(cyl(.012,.012,.16,M(0x2a332f)),x,.16,z))}
+  g.add(at(cyl(.025,.025,.1,M(0x2a332f)),0,.65,0));
+  const t=new THREE.Mesh(new THREE.PlaneGeometry(.26,.08),new THREE.MeshStandardMaterial({map:textTex("FISCAL","#6c8f45","#f2f6c9",128,40,"900 26px Arial"),transparent:true}));
+  g.add(at(t,-.08,.33,.265));
+  g.rotation.y=-.25;return g;
+}
+export function drone(){
+  const g=new THREE.Group();
+  g.add(at(box(.22,.08,.22,M(0x6f8597,{m:.4,r:.4}),.03),0,.2,0));
+  g.add(at(sph(.04,M(0x65e2ff,{e:0x2bb6e0,ei:.6})),0,.16,.1));
+  for(const [x,z] of [[-1,-1],[1,-1],[-1,1],[1,1]]){
+    g.add(at(box(.2,.025,.03,M(0xcfe4ee)),x*.1,.2,z*.1,0,Math.atan2(z,x)*-1));
+    g.add(at(cyl(.025,.025,.04,M(0x2a332f)),x*.18,.23,z*.18));
+  }
+  g.rotation.y=.4;return g;
+}
+// ---------- objetos ----------
+export function crate(){
+  const g=new THREE.Group(),wood=woodTex("#c88a4a","#7d4e2a");
+  g.add(at(box(.8,.72,.8,M(0xffffff,{map:wood,r:.75}),.05),0,.36,0));
+  const brace=M(0x8d5a31,{r:.8});
+  for(const side of [[0,.32,.405,0],[.405,.32,0,Math.PI/2]]){
+    const b=at(box(.98,.07,.025,brace,.01),side[0],.36,side[2],0,side[3],.7);g.add(b);
+  }
+  g.add(at(box(.82,.04,.82,M(0xffffff,{map:woodTex("#d49a58","#8d5a31"),r:.7}),.01),0,.74,0,0,Math.PI/2,0));
+  for(const x of [-.38,.38])for(const z of [-.38,.38])for(const y of [.05,.68])g.add(at(box(.07,.07,.07,M(0x9aa3a0,{m:.8,r:.3}),.012),x,y,z));
+  return g;
+}
+export function logs(){
+  const g=new THREE.Group(),bark=M(0xffffff,{map:barkTex,r:.9}),end=M(0xffffff,{map:ringTex,r:.8});
+  const log=(x,y,z,r,len)=>{
+    const lg=grp(new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,24,1,true),bark));
+    for(const s of [-1,1])lg.add(at(new THREE.Mesh(new THREE.CircleGeometry(r,24),end),0,s*len/2,0,s*-Math.PI/2));
+    return at(lg,x,y,z,Math.PI/2,0,0);
+  };
+  g.add(log(-.2,.15,0,.15,.8));g.add(log(.2,.15,.02,.15,.78));g.add(log(0,.4,.01,.145,.76));
+  g.add(at(sph(.06,M(0x5c8a3f,{r:.9})),-.2,.48,.05,0,0,0,1.4,.4,1));
+  g.add(at(sph(.05,M(0x5c8a3f,{r:.9})),.25,.27,.3,0,0,0,1.2,.5,1));
+  g.rotation.y=-.08;return g;
+}
+export function papers(){
+  const g=new THREE.Group();
+  for(let i=0;i<6;i++)g.add(at(box(.6,.06,.46,M(i%2?0xf6f0de:0xe8dfc6,{r:.9}),.01),(i%3-1)*.03,.04+i*.065,(i%2-.5)*.04,0,(i%3-1)*.06));
+  const tag=new THREE.Mesh(new THREE.PlaneGeometry(.3,.13),new THREE.MeshStandardMaterial({map:textTex("PL","#c9483a","#fff2d8",96,42,"900 30px Arial")}));
+  g.add(at(tag,0,.43,0,-Math.PI/2));
+  return g;
+}
+export function desk(){
+  const g=new THREE.Group(),wood=M(0xffffff,{map:woodTex("#9b6a41","#6b4325"),r:.6});
+  g.add(at(box(.86,.5,.7,wood,.05),0,.25,0));
+  g.add(at(box(.8,.04,.6,M(0x2f6b4a,{r:.9}),.015),0,.51,0));
+  g.add(at(box(.24,.08,.03,M(0xe9e3cf),.01),-.18,.53,.25));
+  g.add(at(cyl(.008,.008,.2,M(0x333)),.22,.62,-.05,.3));
+  g.add(at(sph(.025,M(0x222)),.22,.72,.0));
+  return g;
+}
+export function bomb(red=false){
+  const g=new THREE.Group();
+  g.add(at(sph(.27,M(red?0xc23238:0x1d2630,{m:.35,r:.22,e:red?0x5a0d14:0,ei:.6})),0,.27,0));
+  g.add(at(cyl(.07,.08,.08,M(0x9a7a52,{m:.7,r:.35})),.08,.53,.02,0,0,-.3));
+  return g;
+}
+
+// ---------- renderizacao do sprite ----------
+const scene=new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xfff6e6,0x2a3a2a,1.35));
+const sun=new THREE.DirectionalLight(0xffffff,2.6);sun.position.set(-1.6,3,2.2);scene.add(sun);
+const rim=new THREE.DirectionalLight(0xb8e0ff,.9);rim.position.set(2,1.5,-2);scene.add(rim);
+const fill=new THREE.DirectionalLight(0xffe6c8,.6);fill.position.set(1.5,.6,2.5);scene.add(fill);
+
+// size: lado do quadro em px logicos; groundY: onde o chao (origem) cai, em px a partir do centro
+export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true){
+  const SS=3,px=size*scale*SS,u=size/TILE,el=elevDeg*Math.PI/180;
+  renderer.setSize(px,px,false);
+  const cam=new THREE.OrthographicCamera(-u/2,u/2,u/2,-u/2,.1,50);
+  // o ponto do chao na origem deve cair groundY px abaixo do centro do quadro
+  const dir=new THREE.Vector3(0,Math.sin(el),Math.cos(el));
+  const up=new THREE.Vector3(0,Math.cos(el),-Math.sin(el));
+  const target=up.clone().multiplyScalar(groundY/TILE);
+  cam.position.copy(target).add(dir.clone().multiplyScalar(20));cam.up.copy(up);
+  cam.lookAt(target);cam.updateProjectionMatrix();
+  scene.add(obj);renderer.render(scene,cam);scene.remove(obj);
+  // reduz (supersampling) e aplica contorno
+  const out=document.createElement("canvas"),n=size*scale;out.width=out.height=n;
+  const g=out.getContext("2d");g.imageSmoothingQuality="high";
+  const tmp=document.createElement("canvas");tmp.width=tmp.height=n;const tg=tmp.getContext("2d");tg.imageSmoothingQuality="high";
+  tg.drawImage(renderer.domElement,0,0,n,n);
+  if(outline){
+    const sil=document.createElement("canvas");sil.width=sil.height=n;const sg=sil.getContext("2d");
+    sg.drawImage(tmp,0,0);sg.globalCompositeOperation="source-in";sg.fillStyle="#0c1611";sg.fillRect(0,0,n,n);
+    const w=scale*1.1;
+    for(let a=0;a<16;a++)g.drawImage(sil,Math.cos(a/16*Math.PI*2)*w,Math.sin(a/16*Math.PI*2)*w);
+  }
+  g.drawImage(tmp,0,0);
+  return out;
+}
+window.STUDIO={THREE,render,fiscal,garimpeiro,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.studioReady=true;
