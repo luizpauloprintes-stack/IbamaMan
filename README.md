@@ -1,4 +1,4 @@
-# Fiscal Boom! 💣
+# Ibamaman 💣
 
 Jogo arcade de fiscalização ambiental para Android: explodir balsa de garimpo, pôr fogo em escavadeira, prender garimpeiro ilegal e, na última fase, enfrentar o Deputado Motosserra no Plenário.
 

@@ -18,7 +18,7 @@ async def main():
           add('bomb',S.bomb(false),48,12,35);add('bomb_red',S.bomb(true),48,12,35);
           add('heli',S.helicopter(),112,24,35);add('drone',S.drone(),64,10,40);
           // versoes grandes para a capa
-          add('fiscal_2_0_hd',S.fiscal(2,0),64,20,24,7);add('fiscal_hero_hd',S.fiscal(2,0,true),64,20,18,8);add('garimpeiro_0_hd',S.bandido('run',0),64,20,24,6);
+          add('fiscal_2_0_hd',S.fiscal(2,0),64,20,24,7);add('fiscal_hero_hd',S.fiscal(2,0,true),64,20,18,8);add('hero_tatico_hd',S.heroTatico(),80,26,14,7);add('onca_hd',S.onca(),64,16,20,4);add('arara_hd',S.arara(),64,20,16,4);add('garimpeiro_0_hd',S.bandido('run',0),64,20,24,6);
           add('balsa_hd',S.balsa(),64,10,38,5);add('escavadeira_0_hd',S.escavadeira(0),80,16,36,5);
           add('dragagem_0_hd',S.dragagem(0),80,12,38,4);add('bomb_hd',S.bomb(false),48,12,35,5);
           return A;}""")

@@ -71,7 +71,7 @@ export function fiscal(dir=2,frame=0,hero=false){
   body.add(at(box(.012,.22,.01,M(0xd8c99a)),0,.43,.128));
   body.add(at(cyl(.025,.025,.012,M(0xffd56a,{m:.9,r:.25})),.11,.5,.13,Math.PI/2));
   // costas: FISCAL
-  const back=new THREE.Mesh(new THREE.PlaneGeometry(.3,.1),new THREE.MeshStandardMaterial({map:textTex("FISCAL","#2c3d22","#f4f7cf",160,52,"900 34px Arial"),roughness:.7}));
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(.32,.1),new THREE.MeshStandardMaterial({map:textTex("IBAMA","#2c3d22","#f4f7cf",180,52,"900 34px Arial"),roughness:.7}));
   body.add(at(back,0,.45,-.128,0,Math.PI));
   // radio no ombro
   body.add(at(box(.06,.09,.05,M(0x22302a),.015),-.17,.56,.07));
@@ -225,6 +225,97 @@ export function bandido(mode="run",frame=0){
   root.rotation.y=dig?.35:.62;
   return root;
 }
+
+// ---------- capa: fiscal tatico, arara e onca ----------
+const patchTex=(t,bg="#1f3a6b",fg="#ffffff",w=160,h=56,font="900 34px Arial")=>textTex(t,bg,fg,w,h,font);
+const flagTex=tex(96,64,(g)=>{g.fillStyle="#1f9e46";g.fillRect(0,0,96,64);g.fillStyle="#ffd21f";g.beginPath();g.moveTo(48,6);g.lineTo(90,32);g.lineTo(48,58);g.lineTo(6,32);g.closePath();g.fill();
+  g.fillStyle="#1f3a8a";g.beginPath();g.arc(48,32,14,0,7);g.fill();g.strokeStyle="#fff";g.lineWidth=3;g.beginPath();g.arc(48,40,18,-2.4,-.7);g.stroke()});
+export function heroTatico(){
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  const olive=M(0x5d6b34,{r:.75}),dark=M(0x3e4824,{r:.8});
+  // pernas e botas grandes
+  for(const s of [-1,1]){
+    body.add(at(cap(.075,.12,olive),s*.085,.17,0));
+    body.add(at(box(.15,.1,.22,M(0x5a4127,{r:.6}),.04),s*.09,.05,.03));
+    body.add(at(box(.155,.03,.225,M(0x2a1e14)),s*.09,.005,.03));
+    for(let i=0;i<3;i++)body.add(at(box(.08,.01,.012,M(0xc9b48a)),s*.09,.07+i*.022,.142));
+  }
+  // tronco + colete tatico
+  body.add(at(box(.38,.3,.25,olive,.09),0,.42,0));
+  body.add(at(box(.4,.24,.27,dark,.06),0,.44,0));
+  for(const x of [-.12,0,.12])body.add(at(box(.1,.09,.06,M(0x4a5528,{r:.8}),.02),x,.33,.14));
+  body.add(at(box(.42,.05,.28,M(0x2b2219),.015),0,.29,0));
+  body.add(at(box(.07,.045,.02,M(0xd9b25a,{m:.8,r:.3}),.008),0,.29,.145));
+  const chest=new THREE.Mesh(new THREE.PlaneGeometry(.2,.07),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#141814","#f4f7f0",160,56,"900 36px Arial")}));
+  body.add(at(chest,.0,.5,.137));
+  body.add(at(box(.06,.1,.05,M(0x22302a),.015),-.11,.53,.15));
+  body.add(at(sph(.012,M(0x7dff8a,{e:0x3dff5a,ei:1})),-.11,.6,.17));
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(.3,.1),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#2c3d22","#f4f7cf",180,52,"900 34px Arial")}));
+  body.add(at(back,0,.47,-.137,0,Math.PI));
+  // braco esquerdo: punho fechado ao lado
+  const lsh=new THREE.Group();lsh.position.set(-.22,.53,0);body.add(lsh);
+  lsh.add(at(cap(.06,.13,olive),0,-.1,0));
+  lsh.add(at(sph(.075,M(0x2b2b28,{r:.7})),0,-.22,.02));
+  lsh.rotation.z=-.25;lsh.rotation.x=-.2;
+  // braco direito: joinha
+  // braco direito dobrado, punho para cima com o polegar em joinha
+  body.add(at(cap(.06,.12,olive),.31,.5,.04,0,0,1.25));
+  const flag=new THREE.Mesh(new THREE.PlaneGeometry(.08,.055),new THREE.MeshStandardMaterial({map:flagTex}));
+  body.add(at(flag,.29,.525,.105,0,0,-.3));
+  body.add(at(cap(.058,.13,olive),.42,.6,.07,0,0,-.15));
+  body.add(at(sph(.082,M(0x2b2b28,{r:.7})),.43,.74,.08));
+  body.add(at(cap(.03,.07,M(0x2b2b28,{r:.7})),.42,.84,.1,0,0,.1));
+  // cabeca determinada + capacete
+  const head=new THREE.Group();head.position.y=.8;body.add(head);
+  head.add(sph(.21,M(SKIN,{r:.55})));
+  for(const s of [-1,1]){
+    head.add(eye(s*.075,-.06,.19,1.25));
+    head.add(at(box(.1,.03,.025,M(0x3a2618)),s*.075,.0,.205,0,0,s*-.42));
+    head.add(at(sph(.045,M(SKIN)),s*.21,-.02,0,0,0,0,.5,.8,.6));
+  }
+  head.add(at(sph(.024,M(0xdc9670)),0,-.1,.21));
+  head.add(at(box(.08,.014,.01,M(0x8a3e2c)),.01,-.15,.19,0,0,-.12));
+  const helm=M(0x56632f,{r:.6});
+  head.add(at(new THREE.Mesh(new THREE.SphereGeometry(.245,40,20,0,Math.PI*2,0,Math.PI/2),helm),0,.07,0,0,0,0,1,.95,1));
+  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.245,.03,10,48),helm),0,.07,0,Math.PI/2,0,0,1,1,1));
+  head.add(at(cyl(.255,.27,.03,M(0x4a552a,{r:.6}),48),0,.06,.0));
+  const hp=new THREE.Mesh(new THREE.PlaneGeometry(.17,.08),new THREE.MeshStandardMaterial({map:patchTex("IBAMA","#1f3a6b","#ffffff",160,72,"900 40px Arial")}));
+  head.add(at(hp,0,.19,.225,-.55));
+  root.rotation.y=-.12;
+  return root;
+}
+const spotTex=tex(256,128,(g,w,h)=>{g.fillStyle="#e8a33c";g.fillRect(0,0,w,h);
+  const rr=()=>Math.random();for(let i=0;i<60;i++){const x=rr()*w,y=rr()*h,r=4+rr()*6;g.strokeStyle="#2a1a0e";g.lineWidth=2.5;g.beginPath();g.arc(x,y,r,0,7);g.stroke();g.fillStyle="#c97a22";g.beginPath();g.arc(x,y,r*.5,0,7);g.fill()}});
+export function onca(){
+  const g=new THREE.Group(),fur=M(0xffffff,{map:spotTex,r:.85}),cream=M(0xf6e6c4,{r:.85});
+  g.add(at(sph(.22,fur),0,.22,0,0,0,0,1.15,1,1));
+  g.add(at(sph(.13,cream),0,.15,.16,0,0,0,1.2,.8,.8));
+  g.add(at(sph(.04,M(0x3a2218)),0,.2,.27,0,0,0,1.3,.8,.8));
+  for(const s of [-1,1]){
+    g.add(at(sph(.075,fur),s*.17,.4,0,0,0,0,1,1,.6));
+    g.add(at(sph(.045,M(0x2a1a0e)),s*.17,.4,.03,0,0,0,1,1,.4));
+    g.add(at(sph(.045,M(0xf6d24a,{e:0x6a5010,ei:.4})),s*.09,.28,.2,0,0,0,1.2,1,.5));
+    g.add(at(sph(.022,M(0x101010)),s*.09,.28,.225,0,0,0,.6,1.3,.5));
+  }
+  g.add(at(box(.06,.012,.01,M(0x3a2218)),0,.12,.25));
+  return g;
+}
+export function arara(){
+  const g=new THREE.Group(),red=M(0xd8231a,{r:.55});
+  g.add(at(sph(.13,red),0,.3,0,0,0,0,.9,1.25,.9));
+  g.add(at(sph(.1,red),0,.47,.03));
+  g.add(at(sph(.045,M(0xf6f2e6)),.05,.48,.08,0,0,0,1,1,.6));
+  g.add(at(sph(.016,M(0x111)),.06,.49,.105));
+  const beak=new THREE.Mesh(new THREE.ConeGeometry(.04,.1,12),M(0x2a2a2a,{r:.4}));g.add(at(beak,.04,.43,.12,1.9,0,0));
+  // asa amarela/azul
+  g.add(at(sph(.11,M(0x1f6fd1,{r:.55})),-.06,.27,-.02,0,0,.3,.6,1.3,.9));
+  g.add(at(sph(.08,M(0xffc81f,{r:.55})),-.07,.33,0,0,0,.3,.55,.8,.85));
+  // cauda longa
+  g.add(at(box(.07,.42,.03,M(0x1f6fd1,{r:.55}),.03),-.02,.0,-.04,.2,0,.12));
+  g.add(at(box(.05,.36,.025,red,.02),.02,.02,-.02,.2,0,.05));
+  for(const s of [-1,1])g.add(at(cap(.015,.04,M(0x3a3a3a)),s*.04,.17,.03,0,0,0));
+  g.rotation.y=.5;return g;
+}
 // ---------- maquinas ----------
 export function balsa(){
   const g=new THREE.Group();
@@ -290,7 +381,7 @@ export function helicopter(){
   for(const z of [-.2,.2]){g.add(at(cyl(.015,.015,.6,M(0x2a332f)),0,.08,z,0,0,Math.PI/2));
     for(const x of [-.15,.15])g.add(at(cyl(.012,.012,.16,M(0x2a332f)),x,.16,z))}
   g.add(at(cyl(.025,.025,.1,M(0x2a332f)),0,.65,0));
-  const t=new THREE.Mesh(new THREE.PlaneGeometry(.26,.08),new THREE.MeshStandardMaterial({map:textTex("FISCAL","#6c8f45","#f2f6c9",128,40,"900 26px Arial"),transparent:true}));
+  const t=new THREE.Mesh(new THREE.PlaneGeometry(.26,.08),new THREE.MeshStandardMaterial({map:textTex("IBAMA","#6c8f45","#f2f6c9",140,40,"900 26px Arial"),transparent:true}));
   g.add(at(t,-.08,.33,.265));
   g.rotation.y=-.25;return g;
 }
@@ -384,5 +475,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true){
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,fiscal,garimpeiro,bandido,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,fiscal,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;
