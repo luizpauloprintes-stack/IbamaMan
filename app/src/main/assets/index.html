@@ -4242,14 +4242,14 @@ function vis(o,t){
     if(d<1)v.dist+=d;
     v.moving=d>1e-4;
     if(o.dir===1)v.face=1;else if(o.dir===3)v.face=-1;
-    v.fv+=Math.sign(v.face-v.fv)*Math.min(Math.abs(v.face-v.fv),dt*12);
+    v.fv+=Math.sign(v.face-v.fv)*Math.min(Math.abs(v.face-v.fv),dt*9);
     v.amp+=((v.moving?1:0)-v.amp)*Math.min(1,dt*9);
     const tg=YAW[o.dir??1]??0;let diff=((tg-v.yv)%8+12)%8-4;
     v.yv+=Math.sign(diff)*Math.min(Math.abs(diff),dt*12);v.yv=(v.yv+8)%8;
   }else if(t<v.t){v.t=t}
   return v;
 }
-const fs=v=>Math.sign(v.fv||1)*Math.max(.18,Math.abs(v.fv));
+const fs=v=>Math.sign(v.fv||1);
 window.fbVeh=function(e,t){
   const v=vis(e,t),r=Math.round(v.yv)%8,a=r*Math.PI/4;
   return {r,f:Math.floor(v.dist*22)%4,moving:v.moving,amp:v.amp,bx:-Math.cos(a),by:Math.sin(a),
@@ -4260,8 +4260,10 @@ window.fbHero=function(c,p,t,pose,slot,spr,hop){
   const v=vis(p,t),d=p.dir??2,side=d===1||d===3;
   let name;
   if(pose)name=`h${slot}_p_${pose}`;
-  else name=`h${slot}_${side?1:d}_`+(v.moving?Math.floor(v.dist*8)%8:"i");
-  const sx=pose?1:side?fs(v):1,sy=v.moving||pose?1:1+Math.sin(t*3.2)*.012;
+  // ao virar de um lado para o outro passa pela vista de frente (giro 3D, sem achatar)
+  const turning=side&&Math.abs(v.fv)<.75,vd=turning?2:side?1:d;
+  if(!pose)name=`h${slot}_${vd}_`+(v.moving?Math.floor(v.dist*8)%8:"i");
+  const sx=pose||!side||turning?1:Math.sign(v.fv||1),sy=v.moving||pose?1:1+Math.sin(t*3.2)*.012;
   c.save();c.translate(0,15);c.scale(sx,sy);c.translate(0,-15);
   spr(c,name,0,-7+hop,false,1.22);
   c.restore();
