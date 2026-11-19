@@ -38,7 +38,7 @@ body{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-rig
 #menu.defeat .card{animation:show-defeat .3s .95s both}
 @keyframes show-defeat{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#menu.defeat .card{animation:none}}
-#movehint{position:fixed;left:0;top:0;bottom:0;width:50vw;z-index:40;pointer-events:none;display:grid;place-items:center;
+#movehint{position:fixed;left:0;top:0;bottom:0;width:50vw;z-index:40;pointer-events:none;display:grid;place-items:center end;padding-right:3vw;
   background:linear-gradient(90deg,#ffd37422,#ffd37410 70%,#ffd37400);border-right:2px dashed #ffd37488;transition:opacity .5s}
 #movehint span{font:900 15px/1.35 system-ui,sans-serif;color:#fff3c9;text-align:center;text-shadow:0 2px 4px #000;padding:10px 14px;border-radius:14px;background:#0f2219cc;border:1px solid #ffd37488;animation:pulse 1.4s ease-in-out infinite}
 #movehint.gone{opacity:0}
@@ -647,8 +647,8 @@ class Dragagem extends Enemy {
 class Level {
   static definitions=[
     {name:"Rio",seed:71,density:.28,base:"#55613a",river:"#328faf",exit:[13,11],par:105,enemies:[[Balsa,9,3],[Balsa,3,9],[Garimpeiro,11,9]]},
-    {name:"Garimpo",seed:192,density:.37,base:"#715038",river:"#367d86",exit:[13,1],par:125,enemies:[[Balsa,11,3],[Escavadeira,11,5],[Escavadeira,3,9],[Garimpeiro,9,11],[Garimpeiro,5,5]]},
-    {name:"Acampamento",seed:331,density:.44,base:"#515738",river:"#367c83",exit:[13,11],par:155,enemies:[[Escavadeira,11,3],[Escavadeira,3,9],[Garimpeiro,5,5],[Garimpeiro,9,11],[Balsa,11,9],[Dragagem,11,7]]},
+    {name:"Garimpo",seed:192,density:.37,base:"#715038",river:"#367d86",exit:[13,1],par:125,enemies:[[Balsa,11,3],[Dragagem,11,7],[Escavadeira,3,9],[Garimpeiro,9,11],[Garimpeiro,5,5]]},
+    {name:"Acampamento",seed:331,density:.44,base:"#515738",river:"#367c83",exit:[13,11],par:155,enemies:[[Escavadeira,11,3],[Escavadeira,3,9],[Garimpeiro,5,5],[Garimpeiro,9,11],[Escavadeira,11,9],[Escavadeira,7,7]]},
     {name:"Plenário",seed:0,density:0,base:"#37455b",exit:[7,1],par:105,enemies:[],plenary:true,
      desks:[[3,3],[4,3],[3,4],[5,5],[9,5],[11,7],[12,7],[11,8],[5,9],[6,9],[5,10]]}
   ];
@@ -903,7 +903,7 @@ class Game {
     }
   }
   breakCrate(x,y){
-    this.map.destroy(x,y);this.score+=40;
+    this.map.destroy(x,y);this.score+=40;if(Math.random()<.35)this.stamp(x,y,"+40","#e8d9b0");
     const key=cell(x,y),hidden=this.map.hiddenSupplies.get(key);
     if(hidden!==undefined){
       this.map.hiddenSupplies.delete(key);
@@ -973,7 +973,9 @@ class Game {
         if(enemy.type==="garimpeiro"||enemy.hp<=0||enemy.safe>0||blast.hits.has(enemy)||!blast.touches(enemy))continue;
         blast.hits.add(enemy);
         if(--enemy.hp===0){
-          this.score+=enemy.points;this.stamp(enemy.px,enemy.py,"menos uma");
+          const now=this.elapsed||0;this.combo=now-(this.comboAt??-9)<1.8?(this.combo||1)+1:1;this.comboAt=now;
+          const bonus=(this.combo-1)*150;this.score+=enemy.points+bonus;
+          this.stamp(enemy.px,enemy.py,this.combo>1?`COMBO x${this.combo}! +${enemy.points+bonus}`:`+${enemy.points}`,this.combo>1?"#ffb347":"#ffd477");
           this.audio.play("machine");
         }else{
           enemy.safe=.54;
@@ -1044,7 +1046,7 @@ class Game {
       const sweep=enraged&&boss.attack%2===1;
       const offsets=window.bossFan(enraged,sweep);
       for(const offset of offsets){
-        const angle=aim+offset,speed=enraged?5.2:4.1;
+        const angle=aim+offset,speed=enraged?4.7:3.8;
         boss.papers.push({x:boss.x,y:boss.y,vx:Math.cos(angle)*speed,
           vy:Math.sin(angle)*speed,spin:angle,life:3});
       }
@@ -2442,7 +2444,7 @@ wrap("load",function(orig,index){
   if(!def.plenary)def.seed=(Math.random()*4294967295)>>>0;   // caixas em lugares diferentes a cada partida
   const r=orig.call(this,index);
   // itens escondidos sorteados entre as caixas: 1 vida por fase, escudo garantido no chefe
-  const types=def.plenary?[3,6,5]:[6,7,5,3,0,1];
+  const types=def.plenary?[3,5,5]:[...(Math.random()<.45?[6]:[]),7,5,3,0,1];   // vida extra e rara
   const crates=[];
   for(let y=1;y<12;y++)for(let x=1;x<14;x++)if(this.map.at(x,y)===CRATE)crates.push(cell(x,y));
   for(let i=crates.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[crates[i],crates[j]]=[crates[j],crates[i]]}
@@ -2938,11 +2940,12 @@ R.draw=function(game,t){
   const h=game.hint;
   if(!h||game.state!==State.PLAYING)return;
   const c=this.ctx,k=this.k||1;c.setTransform(k,0,0,k,0,0);
-  const fade=Math.min(1,(h.max-h.time)*4,h.time*2),y=70-(1-Math.min(1,(h.max-h.time)*4))*20;
-  c.save();c.globalAlpha=fade;
-  c.font="900 19px system-ui,sans-serif";
-  const w=Math.min(680,c.measureText(h.text).width+40);
-  this.rr(c,360-w/2,y-20,w,40,14,"#0f2219ee","#ffd374",2.5);
+  const top=!(game.player&&game.player.py<6),base=top?62:572;
+  const fade=Math.min(1,(h.max-h.time)*4,h.time*2),y=base+(top?-1:1)*(1-Math.min(1,(h.max-h.time)*4))*20;
+  c.save();c.globalAlpha=fade*.94;
+  c.font="900 16px system-ui,sans-serif";
+  const w=Math.min(680,c.measureText(h.text).width+36);
+  this.rr(c,360-w/2,y-16,w,32,12,"#0f2219e6","#ffd374",2);
   c.fillStyle="#fff3c9";c.textAlign="center";c.textBaseline="middle";
   c.fillText(h.text,360,y+1,w-30);
   c.restore();
@@ -2958,7 +2961,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 // Garimpeiro bandido: garimpa ouro; se encher o saco, foge com o ouro.
 // =====================================================================
 (()=>{
-const GOLD={Rio:26,Garimpo:28,Acampamento:30};   // segundos garimpando para encher o saco
+const GOLD={Rio:26,Garimpo:22,Acampamento:19};   // segundos garimpando para encher o saco
 Garimpeiro.prototype.update=function(game,dt){
   this.safe=Math.max(0,this.safe-dt);
   if(this.gold===undefined){this.gold=0;this.mode="dig";this.modeTime=1.2+Math.random()*2;this.steps=0}
@@ -4336,6 +4339,45 @@ if(G.applySnap){
     return r;
   };
 }
+})();
+// =====================================================================
+// Dificuldade em rampa: maquinas cacam o fiscal e aceleram por fase;
+// aviso da direcao dos papeis do chefe antes do ataque.
+// =====================================================================
+(()=>{
+const G=Game.prototype,R=Renderer.prototype;
+const SPEED=[1,1.12,1.25];
+const lo=G.load;
+G.load=function(index){
+  const r=lo.call(this,index);
+  const k=SPEED[index]||1;
+  for(const e of this.enemies||[])if(e.type!=="garimpeiro"&&e.speed)e.speed*=k;
+  return r;
+};
+// escavadeira: persegue quando o fiscal esta perto (ate 6 casas)
+const chase=function(base,radius,prob){return function(game,options){
+  const p=game.player,dx=Math.round(p.px)-this.x,dy=Math.round(p.py)-this.y;
+  if(Math.abs(dx)+Math.abs(dy)<=radius&&Math.random()<prob){
+    const best=options.filter(d=>{const [sx,sy]=DIR[d];return Math.abs(dx-sx)+Math.abs(dy-sy)<Math.abs(dx)+Math.abs(dy)});
+    if(best.length)return best[Math.floor(Math.random()*best.length)];
+  }
+  return base.call(this,game,options);
+}};
+Escavadeira.prototype.choose=chase(Escavadeira.prototype.choose,6,.6);
+Balsa.prototype.choose=chase(Balsa.prototype.choose,4,.35);
+// chefe: linhas de aviso mostram para onde os papeis vao
+const db=R.drawBoss;
+R.drawBoss=function(c,boss,t){
+  const game=window.fiscalBoomGame;
+  if(game&&this===game.renderer&&boss.mode==="windup"&&window.bossFan){
+    const p=game.player,enraged=boss.hp<=boss.maxHp/2,sweep=enraged&&boss.attack%2===1;
+    const aim=Math.atan2(p.py-boss.y,p.px-boss.x),x=boss.x*48+24,y=boss.y*48+24;
+    c.save();c.globalAlpha=.35+Math.abs(Math.sin(t*14))*.3;c.strokeStyle="#ff5a3c";c.lineWidth=5;c.setLineDash([10,9]);c.lineCap="round";
+    for(const o of window.bossFan(enraged,sweep)){const a=aim+o;c.beginPath();c.moveTo(x+Math.cos(a)*30,y+Math.sin(a)*30);c.lineTo(x+Math.cos(a)*300,y+Math.sin(a)*300);c.stroke()}
+    c.restore();
+  }
+  return db.call(this,c,boss,t);
+};
 })();
 document.addEventListener("DOMContentLoaded",()=>{
   const game=window.fiscalBoomGame=new Game();
