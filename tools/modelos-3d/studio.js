@@ -165,7 +165,7 @@ export function boss(enraged=false,windup=false){
     head.add(at(sph(.05,M(skin)),s*.22,0,0,0,0,0,.5,.8,.6));
     if(enraged){head.add(at(sph(.04,M(0xfff2d8)),s*.08,.02,.19,0,0,0,1,.7,.5));head.add(at(sph(.016,M(0x1c1714)),s*.08,.02,.215))}
     else head.add(eye(s*.08,.02,.2,1.05));
-    head.add(at(box(.1,.02,.02,M(0x392723)),s*.08,.1,.2,0,0,enraged?-s*.45:s*.08));
+    head.add(at(box(.11,.026,.02,M(0x392723)),s*.08,.085,.205,0,0,enraged?s*.55:s*.3));
   }
   head.add(at(sph(.035,M(enraged?0xc84a3c:0xd99a70)),0,-.03,.22));
   if(enraged)head.add(at(box(.12,.04,.02,M(0x5a1d26),.015),0,-.11,.2));
@@ -218,7 +218,7 @@ export function bandido(mode="run",frame=0){
   head.add(at(box(.32,.105,.12,M(SKIN,{r:.55}),.045),0,.0,.135));
   for(const s of [-1,1]){
     head.add(eye(s*.07,0,.195,1.2));
-    head.add(at(box(.1,.026,.02,M(0x0d0d0f)),s*.07,.058,.198,0,0,s*-.35));   // sobrancelha brava
+    head.add(at(box(.11,.03,.02,M(0x0d0d0f)),s*.07,.05,.2,0,0,s*.5));   // sobrancelha brava
   }
   head.add(at(sph(.035,M(0x2a2b30,{r:.85})),0,.2,0));
   head.add(at(box(.12,.025,.02,M(0x2a2b30)),0,-.1,.19));                     // boca da touca
@@ -270,7 +270,7 @@ export function heroTatico(){
   head.add(sph(.21,M(SKIN,{r:.55})));
   for(const s of [-1,1]){
     head.add(eye(s*.075,-.06,.19,1.25));
-    head.add(at(box(.1,.03,.025,M(0x3a2618)),s*.075,.0,.205,0,0,s*-.42));
+    head.add(at(box(.1,.03,.025,M(0x3a2618)),s*.075,.0,.205,0,0,s*.42));
     head.add(at(sph(.045,M(SKIN)),s*.21,-.02,0,0,0,0,.5,.8,.6));
   }
   head.add(at(sph(.024,M(0xdc9670)),0,-.1,.21));
@@ -357,7 +357,7 @@ export function fiscalTatico(dir=2,frame=0){
   head.add(at(sph(.21,M(SKIN,{r:.55})),0,0,.012));
   for(const s of [-1,1]){
     head.add(eye(s*.075,-.06,.19,1.25));
-    head.add(at(box(.1,.03,.025,M(0x3a2618)),s*.075,.0,.205,0,0,s*-.42));
+    head.add(at(box(.1,.03,.025,M(0x3a2618)),s*.075,.0,.205,0,0,s*.42));
     head.add(at(sph(.045,M(SKIN)),s*.21,-.02,0,0,0,0,.5,.8,.6));
   }
   head.add(at(sph(.024,M(0xdc9670)),0,-.1,.21));
@@ -442,10 +442,11 @@ export function fiscalToon(dir=2,frame=0,pal=0,pose=null){
     }else if(pose==="thumbs"||pose==="cheer"){
       head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.045,.014,8,16,Math.PI),ink),s*.1,-.05,.258));   // olho feliz ^
     }else{
-      head.add(at(sph(.06,ink,24,18),s*.1,-.04,.25,0,0,0,.8,1.3,.45));
-      head.add(at(sph(.02,white,12,10),s*.1-.014,-.005,.275));
+      head.add(at(sph(.06,ink,24,18),s*.1,-.045,.25,0,0,0,.8,1.25,.45));
+      head.add(at(sph(.02,white,12,10),s*.1-.014,-.015,.275));
+      head.add(at(box(.15,.05,.03,skin,.01),s*.1,.03,.262,0,0,s*.45));            // palpebra brava
     }
-    if(pose!=="hurt")head.add(at(box(.13,.035,.03,T(0x2a1c12),.012),s*.1,.06,.258,0,0,pose?s*.12:s*-.38));
+    if(pose!=="hurt")head.add(at(box(.15,.045,.03,T(0x2a1c12),.014),s*.1,pose?.07:.055,.27,0,0,pose?s*.15:s*.45));
     head.add(at(sph(.055,skin),s*.285,-.02,0,0,0,0,.45,.75,.6));
     if(pose)head.add(at(sph(.035,T(0xf08a7a)),s*.17,-.11,.22,0,0,0,1,.6,.4));
   }
@@ -453,7 +454,7 @@ export function fiscalToon(dir=2,frame=0,pal=0,pose=null){
     head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.06,.016,8,16,Math.PI),T(0x8a3e2c)),0,-.13,.245,Math.PI,0,0));
   }else if(pose==="hurt"){
     head.add(at(sph(.04,T(0x5a1d26)),0,-.15,.24,0,0,0,1,1.2,.5));
-  }else head.add(at(box(.07,.016,.012,T(0x8a3e2c)),0,-.15,.25,0,0,-.08));
+  }else head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.05,.014,8,16,Math.PI),T(0x6a2a1c)),0,-.17,.245));   // careta
   // capacete grande com faixa colorida
   const helm=T(P.helm);
   head.add(at(new THREE.Mesh(new THREE.SphereGeometry(.3,40,20,0,Math.PI*2,0,Math.PI/2),helm),0,.12,0,0,0,0,1.06,.95,1.04));
