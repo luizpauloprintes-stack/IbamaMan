@@ -328,7 +328,7 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
     <h2>Como jogar</h2>
     <h3>Missão</h3>
     <p>Você é agente do <strong>G.E.F.</strong>, o Grupo Especial de Fiscalização Ambiental do Ibama. Destrua as máquinas do garimpo ilegal com bombas e lança-chamas e <strong>prenda os garimpeiros</strong> encostando neles. Sem alvos na área, a <strong>saída</strong> é liberada: vá até a bandeira para avançar.</p>
-    <p>São 7 fases (Rio, Garimpo, Acampamento, Queimada, Pesca ilegal, Operação noturna e Plenário) e você tem 3 vidas.</p>
+    <p>São 7 fases (Rio, Garimpo, Acampamento, Queimada, Pesca ilegal, Operação noturna e Plenário) e você tem 4 vidas.</p>
     <h3>Controles</h3>
     <div class="rows">
       <div class="row"><span class="ico">🕹️</span><span><strong>Joystick</strong>: arraste para andar.</span></div>
@@ -793,7 +793,7 @@ class Game {
     this.renderer=new Renderer(document.querySelector("#arena canvas"));
     this.hud=new HUD();
     this.player=new Player();
-    this.score=0;this.lives=3;
+    this.score=0;this.lives=4;
     this.last=0;this.accumulator=0;
     this.load(0);
     this.setState(State.TITLE);
@@ -811,7 +811,7 @@ class Game {
   }
   start(){
     this.audio.unlock();
-    this.player=new Player();this.score=0;this.lives=3;
+    this.player=new Player();this.score=0;this.lives=4;
     const testBoss=location.protocol==="file:"&&location.hash==="#plenario";
     this.load(testBoss?Level.definitions.length-1:0);
     this.audio.startMusic(this.index===0);
@@ -3783,7 +3783,7 @@ G.startMP=function(){
   Level.definitions=mp.mode==="battle"?[Object.assign({},ARENA)]:ORIG_LEVELS;
   this.player=new Player();this.player.slot=0;this.player.id=mp.selfId;this.player.name=mp.name;
   this.mates=mp.players.filter(p=>p.id!==mp.selfId).map(p=>{const m=new Player();m.id=p.id;m.name=p.name;m.slot=p.slot;m.lastSeen=performance.now();return m});
-  this.score=0;this.lives=mp.mode==="battle"?1:3;mp.wins=mp.wins||{};mp.round=(mp.round||0)+1;this.roundOver=null;
+  this.score=0;this.lives=mp.mode==="battle"?1:4;mp.wins=mp.wins||{};mp.round=(mp.round||0)+1;this.roundOver=null;
   for(const p of allPlayers(this))resetStats(p);
   this.load(0);
   this.audio.startMusic(false);
@@ -4157,7 +4157,7 @@ function onClientMessage(g,msg){
       mp.phase="game";mp.actions=[];
       Level.definitions=mp.mode==="battle"?[Object.assign({},ARENA)]:ORIG_LEVELS;
       g.player=new Player();g.player.slot=(mp.players.find(p=>p.id===mp.selfId)||{}).slot||0;
-      g.mates=[];g.index=-1;g.score=0;g.lives=3;g.elapsed=0;g.stamps=[];g.items=[];g.enemies=[];g.bombs=new Map();g.blasts=[];
+      g.mates=[];g.index=-1;g.score=0;g.lives=4;g.elapsed=0;g.stamps=[];g.items=[];g.enemies=[];g.bombs=new Map();g.blasts=[];
       g.audio.unlock();closeLobby();window.fiscalBoomCover&&window.fiscalBoomCover.hide();
     }
     return;
