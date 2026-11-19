@@ -1147,7 +1147,7 @@ class HUD {
       TITLE:["Ibamaman","Operação Amazônia","Proteja a floresta! Use bombas e lança-chamas para abrir caminho. Recolha o helicóptero para chamar reforço e procure a bandeira da saída.","Iniciar"],
       PAUSED:["Em pausa","Operação Amazônia","O tempo da fase ficou congelado. Use P ou o botão abaixo para voltar.","Continuar"],
       VICTORY:["Projeto rejeitado!","Amazônia protegida 🌳","Pontuação final: "+game.score+". Proteger a floresta também é defender os territórios e os direitos dos povos indígenas.","Jogar novamente"],
-      GAMEOVER:["Game Over","Fim da operação","Pontuação final: "+game.score+". Procure uma esquina antes de instalar o próximo dispositivo.","Tentar de novo"]
+      GAMEOVER:["Game Over","Você foi derrotado","Mas o Ibama nunca descansa. Pontuação: "+game.score+". Respire, reagrupe a equipe e volte para a próxima operação!","Voltar à operação"]
     };
     const [title,subtitle,desc,action]=views[state];
     this.write("title",title);this.write("subtitle",subtitle);
