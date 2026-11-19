@@ -8,13 +8,9 @@ async def main():
         await pg.goto('http://127.0.0.1:8765/studio.html'); await pg.wait_for_function('window.studioReady===true',timeout=20000)
         atlas=await pg.evaluate("""()=>{
           const S=window.STUDIO,A={},add=(name,obj,size,gy,el,scale=2,thick=1.1)=>{A[name]={size,src:S.render(obj,size,gy,el,scale,true,thick).toDataURL('image/webp',.92)}};
-          for(let c=0;c<4;c++){for(let d=0;d<4;d++)for(let f=0;f<5;f++)add(`f${c}_${d}_${f}`,S.fiscalToon(d,f,c),64,20,18,2,1.5);for(const ps of ['thumbs','cheer','hurt'])add(`f${c}_p_${ps}`,S.fiscalToon(2,0,c,ps),64,20,18,2,1.5)}
-          for(let f=0;f<4;f++){add(`garimpeiro_${f}`,S.bandido('run',f),64,20,24);add(`garimpeiro_dig_${f}`,S.bandido('dig',f),64,20,24)}
-          add('balsa',S.balsa(),64,10,38);
-          for(let f=0;f<4;f++)add(`escavadeira_${f}`,S.escavadeira(f),80,16,36);
-          for(let f=0;f<4;f++)add(`dragagem_${f}`,S.dragagem(f),80,12,38);
-          for(const [k,e,w] of [['n',false,false],['nw',false,true],['e',true,false],['ew',true,true]])add('boss_'+k,S.boss(e,w),112,34,22);
-          add('crate',S.crateGarimpo(),64,14,36);add('logs',S.rocks(),64,14,40);add('papers',S.papers(),64,14,40);add('desk',S.desk(),64,14,40);
+          for(let r=0;r<8;r++){add(`balsa_${r}`,S.yaw(S.balsa(),r),64,10,38);
+            for(let f=0;f<4;f++){add(`escavadeira_${r}_${f}`,S.yaw(S.escavadeira(f),r),80,16,36);add(`dragagem_${r}_${f}`,S.yaw(S.dragagem(f),r),80,12,38)}}
+                    add('crate',S.crateGarimpo(),64,14,36);add('logs',S.rocks(),64,14,40);add('papers',S.papers(),64,14,40);add('desk',S.desk(),64,14,40);
           add('bomb',S.bomb(false),48,12,35);add('bomb_red',S.bomb(true),48,12,35);
           add('heli',S.helicopter(),112,24,35);add('drone',S.drone(),64,10,40);
           // versoes grandes para a capa

@@ -519,28 +519,41 @@ export function balsa(){
   g.add(new THREE.Mesh(new THREE.TubeGeometry(curve,20,.035,12),M(0x8f9493,{r:.5})));
   g.rotation.y=-.35;return g;
 }
-export function escavadeira(frame=0){
-  const g=new THREE.Group(),dig=Math.sin(frame/4*Math.PI*2)*.28;
-  const track=M(0x2a2c2b,{r:.8});
+export function escavadeira(frame=0,dig=null){
+  // frame 0..3 = fase da esteira (rodas girando e garras andando); braco recolhido para rodar
+  const g=new THREE.Group(),ph=(frame%4)/4,arm=dig===null?.08:Math.sin(dig/4*Math.PI*2)*.28;
+  const track=M(0x2a2c2b,{r:.8}),cleat=M(0x161818,{r:.9}),wheelM=M(0x8b918d,{m:.55,r:.35}),hubM=M(0xf2b232,{r:.45});
   for(const z of [-.2,.2]){
-    g.add(at(box(.72,.16,.15,track,.07),0,.08,z));
-    for(let i=0;i<4;i++)g.add(at(cyl(.045,.045,.155,M(0x7a7f7b,{m:.5})),-.24+i*.16,.08,z,Math.PI/2));
+    g.add(at(box(.74,.17,.16,track,.075),0,.09,z));
+    // garras da esteira deslizando conforme anda
+    const sp=.093;
+    for(let i=-5;i<=5;i++){const x=i*sp+ph*sp;if(Math.abs(x)>.31)continue;
+      g.add(at(box(.035,.02,.165,cleat),x,.185,z));g.add(at(box(.035,.02,.165,cleat),-x,.0,z))}
+    // rodas com raios (giram com a fase)
+    for(let i=0;i<4;i++){
+      const w=new THREE.Group();w.position.set(-.255+i*.17,.09,z+(z>0?.083:-.083));
+      w.add(at(cyl(.062,.062,.02,wheelM,20),0,0,0,Math.PI/2));
+      w.add(at(cyl(.022,.022,.026,hubM,12),0,0,0,Math.PI/2));
+      for(let k=0;k<3;k++)w.add(at(box(.11,.018,.024,M(0x4a4f4c,{m:.5})),0,0,0,0,0,k*Math.PI/3));
+      w.rotation.z=-ph*Math.PI*2/3;g.add(w);
+    }
   }
   const yel=M(0xf2b232,{r:.45});
-  g.add(at(box(.56,.2,.44,yel,.05),-.04,.27,0));
-  g.add(at(box(.12,.18,.44,M(0x8e6a2a,{r:.5}),.04),-.31,.3,0));
-  g.add(at(box(.24,.26,.28,yel,.04),-.1,.48,.06));
-  g.add(at(box(.2,.17,.29,M(0x7fc3d6,{r:.1,m:.2}),.02),-.07,.51,.065));
-  g.add(at(cyl(.022,.022,.2,M(0x3a3d3f)),-.25,.52,-.12));
-  // braco articulado
-  const boom=new THREE.Group();boom.position.set(.18,.36,-.05);boom.rotation.z=.55+dig;g.add(boom);
+  g.add(at(box(.56,.2,.44,yel,.05),-.04,.28,0));
+  g.add(at(box(.12,.18,.44,M(0x8e6a2a,{r:.5}),.04),-.31,.31,0));
+  g.add(at(box(.24,.26,.28,yel,.04),-.1,.49,.06));
+  g.add(at(box(.2,.17,.29,M(0x7fc3d6,{r:.1,m:.2}),.02),-.07,.52,.065));
+  g.add(at(cyl(.022,.022,.2,M(0x3a3d3f)),-.25,.53,-.12));
+  const boom=new THREE.Group();boom.position.set(.18,.37,-.05);boom.rotation.z=.55+arm;g.add(boom);
   boom.add(at(box(.42,.08,.09,yel,.03),.2,0,0));
-  const stick=new THREE.Group();stick.position.set(.4,0,0);stick.rotation.z=-1.6-dig*1.4;boom.add(stick);
+  const stick=new THREE.Group();stick.position.set(.4,0,0);stick.rotation.z=-1.6-arm*1.4;boom.add(stick);
   stick.add(at(box(.3,.065,.075,M(0xe8a133,{r:.45}),.025),.14,0,0));
   const bucket=grp(at(box(.12,.12,.16,M(0x8a8f8c,{m:.6,r:.4}),.03),0,0,0),at(box(.08,.06,.14,M(0x6b4a2c)),.01,.03,0));
   stick.add(at(bucket,.3,-.02,0,0,0,-.5));
   g.rotation.y=-.3;return g;
 }
+// gira o modelo para o rumo (0=direita, 2=cima, 4=esquerda, 6=baixo), em passos de 45 graus
+export function yaw(obj,a){obj.rotation.y=a*Math.PI/4;return obj}
 export function dragagem(frame=0){
   const g=new THREE.Group();
   g.add(at(box(.96,.18,.7,M(0xb85a32,{r:.6}),.05),0,.1,0));
@@ -661,5 +674,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true,thick=
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,yaw,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;
