@@ -434,7 +434,7 @@ const angryEyes=(head,skin,z=.238,fury=false)=>{
 const stripeTex2=tex(64,64,(g,w,h)=>{for(let i=0;i<8;i++){g.fillStyle=i%2?"#f2f2f2":"#1a1a1a";g.fillRect(0,i*8,w,8)}});
 // garimpeiro bandido: balaclava, camisa listrada, saco de ouro nas costas
 export function bandido3d(dir=2,ph=null,dig=null){
-  const black=M(0x1b1b1d,{r:.75}),skin=M(0xe8a878,{r:.5});
+  const black=M(0x1b1b1d,{r:.75}),skin=M(0xf2c49a,{r:.5}),mask=M(0x5d6b3a,{r:.85}),capM=M(0x8a5a2b,{r:.7});
   const shirt=new THREE.MeshStandardMaterial({map:stripeTex2,roughness:.7});
   const sack=M(0xb89a6a,{r:.9}),rope=M(0x6b4a2c,{r:.8});
   const o={pants:M(0x5a4430,{r:.75}),shoe:M(0x161616,{r:.5}),sleeve:shirt,hand:black,
@@ -446,12 +446,15 @@ export function bandido3d(dir=2,ph=null,dig=null){
       const sw=walk?Math.sin(a):0;arm(-1,sw*.6,-.18,walk?.35+Math.max(0,sw)*.4:.25);
     },
     head:h=>{
-      h.add(at(cyl(.07,.08,.08,black),0,-.2,0));
-      h.add(at(sph(.27,black,48,36),0,0,0,0,0,0,1.04,1.02,1));
-      h.add(at(box(.36,.12,.08,skin,.05),0,-.02,.215,0,0,0,1,1,1));        // abertura dos olhos
+      h.add(at(cyl(.07,.08,.08,mask),0,-.2,0));
+      h.add(at(sph(.27,skin,48,36),0,0,0,0,0,0,1.04,1.02,1));                // rosto claro a mostra
+      // lenco verde-oliva cobrindo nariz e boca (balaclava aberta)
+      h.add(at(new THREE.Mesh(new THREE.SphereGeometry(.285,40,24,0,Math.PI*2,Math.PI*.63,Math.PI*.37),mask),0,0,0,0,0,0,1.05,1.02,1.02));
+      h.add(at(new THREE.Mesh(new THREE.TorusGeometry(.27,.02,8,40),mask),0,-.1,.0,Math.PI/2+.12,0,0,1.05,1.02,1));
       angryEyes(h,skin,.245);
-      h.add(at(sph(.03,M(0x2a1a14),10,8),0,-.16,.255,0,0,0,1.4,.7,.5));   // boca
-      h.add(at(sph(.05,black,12,10),0,.27,0,0,0,0,1,.6,1));                // pompom
+      // bone marrom virado para tras
+      h.add(at(new THREE.Mesh(new THREE.SphereGeometry(.29,40,20,0,Math.PI*2,0,Math.PI/2),capM),0,.08,0,0,0,0,1.04,.9,1.04));
+      h.add(at(new THREE.Mesh(new THREE.CylinderGeometry(.17,.18,.025,28,1,false,-Math.PI/2.4,Math.PI/1.2),capM),0,.08,-.16,.1,Math.PI,0));
     },
     extra:(body,torso)=>{
       if(dig!==null)return;
