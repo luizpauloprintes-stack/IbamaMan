@@ -8,7 +8,7 @@ async def main():
         await pg.goto('http://127.0.0.1:8765/studio.html'); await pg.wait_for_function('window.studioReady===true',timeout=20000)
         atlas=await pg.evaluate("""()=>{
           const S=window.STUDIO,A={},add=(name,obj,size,gy,el,scale=2)=>{A[name]={size,src:S.render(obj,size,gy,el,scale).toDataURL('image/webp',.92)}};
-          for(let d=0;d<4;d++)for(let f=0;f<5;f++)add(`fiscal_${d}_${f}`,S.fiscalTatico(d,f),64,20,24);
+          for(let d=0;d<4;d++)for(let f=0;f<5;f++)add(`fiscal_${d}_${f}`,S.fiscalToon(d,f),64,20,18);
           for(let f=0;f<4;f++){add(`garimpeiro_${f}`,S.bandido('run',f),64,20,24);add(`garimpeiro_dig_${f}`,S.bandido('dig',f),64,20,24)}
           add('balsa',S.balsa(),64,10,38);
           for(let f=0;f<4;f++)add(`escavadeira_${f}`,S.escavadeira(f),80,16,36);
@@ -18,7 +18,7 @@ async def main():
           add('bomb',S.bomb(false),48,12,35);add('bomb_red',S.bomb(true),48,12,35);
           add('heli',S.helicopter(),112,24,35);add('drone',S.drone(),64,10,40);
           // versoes grandes para a capa
-          add('fiscal_2_0_hd',S.fiscalTatico(2,0),64,20,24,7);add('fiscal_hero_hd',S.fiscal(2,0,true),64,20,18,8);add('hero_tatico_hd',S.heroTatico(),80,26,14,7);add('onca_hd',S.onca(),64,16,20,4);add('arara_hd',S.arara(),64,20,16,4);add('garimpeiro_0_hd',S.bandido('run',0),64,20,24,6);
+          add('fiscal_2_0_hd',S.fiscalToon(2,0),64,20,18,7);add('fiscal_hero_hd',S.fiscal(2,0,true),64,20,18,8);add('hero_tatico_hd',S.heroTatico(),80,26,14,7);add('onca_hd',S.onca(),64,16,20,4);add('arara_hd',S.arara(),64,20,16,4);add('garimpeiro_0_hd',S.bandido('run',0),64,20,24,6);
           add('balsa_hd',S.balsa(),64,10,38,5);add('escavadeira_0_hd',S.escavadeira(0),80,16,36,5);
           add('dragagem_0_hd',S.dragagem(0),80,12,38,4);add('bomb_hd',S.bomb(false),48,12,35,5);
           return A;}""")
