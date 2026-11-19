@@ -2804,7 +2804,7 @@ function setupFlexStick(game){
     if(dist<8){stick.setDirection(-1);lastDir=-1;return}
     const angle=Math.atan2(dx,-dy)*180/Math.PI;
     const delta=((angle-stick.direction*90+540)%360)-180;
-    if(stick.direction>=0&&Math.abs(delta)<=50)return;
+    if(stick.direction>=0&&Math.abs(delta)<=46)return;
     const dir=(Math.round(angle/90)+4)%4;
     game.input.memo=dir;game.input.memoAt=performance.now();
     stick.setDirection(dir);
@@ -4225,6 +4225,18 @@ Mover.prototype.move=function(game,dir){
   }
   return ok;
 };
+// resposta imediata: voltar para tras no meio da casa inverte na hora
+{const up=Player.prototype.update;
+Player.prototype.update=function(game,dt){
+  if(this.progress<1&&!this.dead){
+    const want=game.input.direction();
+    if(want>=0&&want===(this.dir+2)%4){
+      const x=this.x,y=this.y;this.x=this.tx;this.y=this.ty;this.tx=x;this.ty=y;
+      this.progress=1-this.progress;this.dir=want;this.lastMove=want;
+    }else if(want>=0&&game.input.memo===undefined){game.input.memo=want;game.input.memoAt=performance.now()}
+  }
+  return up.call(this,game,dt);
+}}
 for(const C of [Player,Enemy,Garimpeiro]){
   const u=C.prototype.update;
   C.prototype.update=function(game,dt){
