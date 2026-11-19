@@ -468,6 +468,40 @@ export function fiscalToon(dir=2,frame=0,pal=0,pose=null){
   root.rotation.y=[Math.PI,Math.PI/2,0,-Math.PI/2][dir];
   return root;
 }
+
+// ---------- obstaculos claros: pedras (nao quebram) e caixas do garimpo (quebram) ----------
+export function rocks(){
+  const g=new THREE.Group();
+  const rock=(r,x,y,z,col,seed,sy=.8)=>{
+    const geo=new THREE.IcosahedronGeometry(r,2),pos=geo.attributes.position;
+    for(let i=0;i<pos.count;i++){const X=pos.getX(i),Y=pos.getY(i),Z=pos.getZ(i);
+      const n=Math.sin(X*9.1+seed)*Math.cos(Z*8.3+seed*1.7)*Math.sin(Y*7.7+seed*.6);const k=1+n*.16;
+      pos.setXYZ(i,X*k,Y*k*sy,Z*k)}
+    geo.computeVertexNormals();
+    const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:col,roughness:.95,flatShading:true}));
+    m.position.set(x,y,z);g.add(m);return m;
+  };
+  rock(.4,0,.3,-.02,0x7d837f,1,.85);rock(.27,-.26,.2,.18,0x6c726e,2);rock(.25,.28,.19,.16,0x8a908b,3);rock(.2,.14,.56,-.08,0x939893,4);
+  for(const [x,y,z,sx] of [[-.08,.6,.06,1.4],[.22,.4,.26,1.1],[-.3,.36,.24,1],[.1,.66,-.1,.9],[-.32,.16,.36,.9]])
+    g.add(at(sph(.1,M(0x4f8a3a,{r:.95}),12,10),x,y,z,0,0,0,sx,.35,sx));
+  for(let i=0;i<5;i++)g.add(at(new THREE.Mesh(new THREE.ConeGeometry(.035,.2,5),M(0x5aa040,{r:.9})),-.42+i*.05,.12,.32,0,0,(i-2)*.25));
+  return g;
+}
+const garimpoTex=tex(128,128,(g,w,h)=>{g.fillStyle="#c9874a";g.fillRect(0,0,w,h);
+  g.globalAlpha=.25;for(let i=0;i<4;i++){g.fillStyle="#7a4a24";g.fillRect(0,i*32+30,w,3)}g.globalAlpha=1;
+  for(let i=-2;i<10;i++){g.fillStyle=i%2?"#1a1a1a":"#ffd21f";g.beginPath();g.moveTo(i*16,0);g.lineTo(i*16+16,0);g.lineTo(i*16+4,22);g.lineTo(i*16-12,22);g.closePath();g.fill()}
+  g.fillStyle="#2a1608";g.font="900 26px Arial";g.textAlign="center";g.fillText("GARIMPO",64,74);
+  g.fillStyle="#ffd21f";g.strokeStyle="#2a1608";g.lineWidth=3;
+  for(const [x,y,r] of [[52,102,9],[66,98,10],[78,104,8]]){g.beginPath();g.moveTo(x-r,y+3);g.lineTo(x-r*.4,y-r);g.lineTo(x+r*.6,y-r*.7);g.lineTo(x+r,y+4);g.closePath();g.fill();g.stroke()}});
+export function crateGarimpo(){
+  const g=new THREE.Group();
+  const side=new THREE.MeshStandardMaterial({map:garimpoTex,roughness:.75});
+  const top=M(0xffffff,{map:woodTex("#d99a58","#8d5a31"),r:.7});
+  const b=new THREE.Mesh(new RoundedBoxGeometry(.8,.7,.8,3,.05),[side,side,top,top,side,side]);
+  b.position.y=.35;g.add(b);
+  for(const x of [-.38,.38])for(const z of [-.38,.38])for(const y of [.05,.66])g.add(at(box(.07,.07,.07,M(0x9aa3a0,{m:.8,r:.3}),.012),x,y,z));
+  g.rotation.y=.1;return g;
+}
 // ---------- maquinas ----------
 export function balsa(){
   const g=new THREE.Group();
@@ -627,5 +661,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true,thick=
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;
