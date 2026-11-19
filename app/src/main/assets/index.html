@@ -328,7 +328,7 @@ header button:active{transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff1
     <h2>Como jogar</h2>
     <h3>Missão</h3>
     <p>Você é agente do <strong>G.E.F.</strong>, o Grupo Especial de Fiscalização Ambiental do Ibama. Destrua as máquinas do garimpo ilegal com bombas e lança-chamas e <strong>prenda os garimpeiros</strong> encostando neles. Sem alvos na área, a <strong>saída</strong> é liberada: vá até a bandeira para avançar.</p>
-    <p>São 4 fases (Rio, Garimpo, Acampamento e Plenário) e você tem 3 vidas.</p>
+    <p>São 7 fases (Rio, Garimpo, Acampamento, Queimada, Pesca ilegal, Operação noturna e Plenário) e você tem 3 vidas.</p>
     <h3>Controles</h3>
     <div class="rows">
       <div class="row"><span class="ico">🕹️</span><span><strong>Joystick</strong>: arraste para andar.</span></div>
@@ -649,6 +649,15 @@ class Level {
     {name:"Rio",seed:71,density:.28,base:"#55613a",river:"#328faf",exit:[13,11],par:105,enemies:[[Balsa,9,3],[Balsa,3,9],[Garimpeiro,11,9]]},
     {name:"Garimpo",seed:192,density:.37,base:"#715038",river:"#367d86",exit:[13,1],par:125,enemies:[[Balsa,11,3],[Dragagem,11,7],[Escavadeira,3,9],[Garimpeiro,9,11],[Garimpeiro,5,5]]},
     {name:"Acampamento",seed:331,density:.44,base:"#515738",river:"#367c83",exit:[13,11],par:155,enemies:[[Escavadeira,11,3],[Escavadeira,3,9],[Garimpeiro,5,5],[Garimpeiro,9,11],[Escavadeira,11,9],[Escavadeira,7,7]]},
+    {name:"Queimada",seed:401,density:.34,base:"#4a3b2c",river:"#367c83",exit:[13,11],par:140,fire:true,
+     intro:"🔥 Queimada! O fogo se espalha: apague com bombas e não encoste nas chamas",
+     enemies:[[Escavadeira,11,3],[Escavadeira,3,9],[Garimpeiro,9,11],[Garimpeiro,5,5],[Escavadeira,11,9]]},
+    {name:"Pesca ilegal",seed:517,density:.3,base:"#2f6a6e",river:"#2f8fae",exit:[13,1],par:130,water:true,
+     intro:"🎣 Pesca ilegal no rio: afunde as balsas e prenda os pescadores antes que fujam",
+     enemies:[[Balsa,11,3],[Balsa,3,9],[Dragagem,11,7],[Garimpeiro,9,11],[Garimpeiro,5,5]]},
+    {name:"Operação noturna",seed:633,density:.36,base:"#3c4a34",river:"#2b5f6a",exit:[13,11],par:150,night:true,
+     intro:"🔦 Operação noturna: a lanterna mostra o caminho. Olho nos faróis das máquinas!",
+     enemies:[[Escavadeira,11,3],[Escavadeira,3,9],[Balsa,11,9],[Garimpeiro,5,5],[Garimpeiro,9,11],[Escavadeira,7,7]]},
     {name:"Plenário",seed:0,density:0,base:"#37455b",exit:[7,1],par:105,enemies:[],plenary:true,
      desks:[[3,3],[4,3],[3,4],[5,5],[9,5],[11,7],[12,7],[11,8],[5,9],[6,9],[5,10]]}
   ];
@@ -2431,7 +2440,7 @@ const resetOrig=VirtualStick.prototype.reset;
 VirtualStick.prototype.reset=function(){this.originX=this.originY=undefined;return resetOrig.call(this)};
 
 // ---------- Fases, tempo e incendio ----------
-const LIMITS={Rio:200,Garimpo:220,"Acampamento":280};
+const LIMITS={Rio:200,Garimpo:220,"Acampamento":280,Queimada:300,"Pesca ilegal":240,"Operação noturna":300};
 const G=Game.prototype;
 const wrap=(name,fn)=>{const orig=G[name];G[name]=function(...a){return fn.call(this,orig,...a)}};
 const SAVE_KEY="fiscalBoom.v1";
@@ -2775,6 +2784,108 @@ window.addEventListener("sprites3d",()=>{
 });
 })();
 // =====================================================================
+// Fases novas: Queimada (fogo que se espalha e se apaga com bombas),
+// Pesca ilegal (chao alagado) e Operacao noturna (escuro com lanterna).
+// =====================================================================
+(()=>{
+const G=Game.prototype,R=Renderer.prototype,TAU=Math.PI*2;
+const wrap=(o,n,fn)=>{const f=o[n];o[n]=function(...a){return fn.call(this,f,...a)}};
+const free=(g,x,y)=>g.map.at(x,y)===EMPTY&&!g.bombs.has(cell(x,y));
+wrap(G,"load",function(o,index){
+  const r=o.call(this,index);
+  this.fires=null;
+  const lv=this.level;
+  if(lv&&lv.fire){
+    this.fires=new Map();this.fireTick=2;
+    const spots=[];for(let y=1;y<12;y++)for(let x=1;x<14;x++)if(free(this,x,y)&&x+y>9)spots.push([x,y]);
+    for(let i=0;i<5&&spots.length;i++){const [x,y]=spots.splice(Math.floor(Math.random()*spots.length),1)[0];this.fires.set(cell(x,y),0)}
+  }
+  if(lv&&lv.intro){if(this.hint&&this.hintQueue)this.hintQueue(lv.intro,4.5);else this.hintMsg&&this.hintMsg(lv.intro,4.5)}
+  return r;
+});
+wrap(G,"update",function(o,dt){
+  const r=o.call(this,dt);
+  const F=this.fires;
+  if(!F||this.state!==State.PLAYING||(this.mp&&this.mp.role==="client"))return r;
+  for(const [k,a] of F){if(a>22)F.delete(k);else F.set(k,a+dt)}   // chama se apaga sozinha depois de um tempo
+  // bombas e lanca-chamas abafam o fogo
+  for(const b of this.blasts)for(const k of b.cells)if(F.has(k)){F.delete(k);this.score+=30;if(Math.random()<.4){const x=k%15,y=Math.floor(k/15);this.stamp(x,y,"Apagou! +30","#9fe7ff")}}
+  // o fogo se espalha aos poucos
+  this.fireTick-=dt;
+  if(this.fireTick<=0){
+    this.fireTick=2.8;
+    const add=[];
+    for(const [k,a] of F){if(a<2||Math.random()>.35)continue;
+      const x=k%15,y=Math.floor(k/15),[dx,dy]=DIR[Math.floor(Math.random()*4)];
+      const p=this.player;
+      if(free(this,x+dx,y+dy)&&!(Math.round(p.px)===x+dx&&Math.round(p.py)===y+dy))add.push(cell(x+dx,y+dy));}
+    for(const k of add)if(F.size<16)F.set(k,0);
+  }
+  // encostar na chama machuca
+  const p=this.player;
+  if(p&&!p.dead&&!(p.safe>0)&&F.get(cell(Math.round(p.px),Math.round(p.py)))>1.2){this.hurt(true)}   // chama nova so assusta; crescida queima
+  return r;
+});
+if(G.applySnap)wrap(G,"applySnap",function(o,s){const r=o.call(this,s);this.fires=s.fi?new Map(s.fi.map(k=>[k,9])):null;return r});
+// chao alagado na pesca ilegal
+wrap(R,"prepare",function(o,game){
+  const r=o.call(this,game);
+  if(game.level&&game.level.water&&!game.boss){
+    const c=this.layer;
+    for(let y=1;y<12;y++)for(let x=1;x<14;x++){
+      const X=x*48,Y=y*48;
+      c.fillStyle=(x+y)%2?"#2f8fae55":"#3a9ab866";c.fillRect(X,Y,48,48);
+      c.strokeStyle="#cdf3ff44";c.lineWidth=1.5;
+      for(let i=0;i<2;i++){const yy=Y+14+i*20+((x*7+y*3)%6);c.beginPath();c.moveTo(X+8,yy);c.quadraticCurveTo(X+16,yy-4,X+24,yy);c.quadraticCurveTo(X+32,yy+4,X+40,yy);c.stroke()}
+    }
+  }
+  return r;
+});
+// fogo e escuridao (desenhados antes dos avisos)
+wrap(R,"draw",function(o,game,t){
+  const r=o.call(this,game,t);
+  if(!game.level||game.state===State.TITLE)return r;
+  const c=this.ctx,k=this.k||1;c.setTransform(k,0,0,k,0,0);
+  if(game.fires&&game.fires.size){
+    for(const [key,a] of game.fires){
+      const x=(key%15)*48+24,y=Math.floor(key/15)*48+28,g=Math.min(1,a/1.2);
+      this.glow(c,x,y,40*g,"#ff7a2a",.55);
+      for(let i=0;i<3;i++){
+        const fl=Math.sin(t*12+i*2.1+key)*4,h=(30-i*6)*g+Math.sin(t*9+i+key)*4,w=19-i*5;
+        c.fillStyle=["#e8401a","#ff9a2a","#ffe27a"][i];
+        c.beginPath();c.moveTo(x-w,y+14);c.quadraticCurveTo(x-w+2+fl,y+14-h*.6,x+fl*.5,y+14-h);c.quadraticCurveTo(x+w-2+fl,y+14-h*.6,x+w,y+14);c.closePath();c.fill();
+      }
+      if(Math.random()<.04)this.spawn&&this.spawn(1,()=>({type:"smoke",x:x+(Math.random()-.5)*14,y:y-14,vx:(Math.random()-.5)*10,vy:-20,life:1,max:1,size:4,grow:12,drag:1}));
+    }
+  }
+  if(game.level.night&&!game.boss){
+    const W=720,H=624;
+    const m=this.nightCv||(this.nightCv=document.createElement("canvas"));
+    if(m.width!==Math.round(W*k)){m.width=Math.round(W*k);m.height=Math.round(H*k)}
+    const n=m.getContext("2d");n.setTransform(k,0,0,k,0,0);
+    n.globalCompositeOperation="source-over";n.clearRect(0,0,W,H);n.fillStyle="rgba(4,8,22,.86)";n.fillRect(0,0,W,H);
+    n.globalCompositeOperation="destination-out";
+    const hole=(x,y,rad,a=1)=>{const g=n.createRadialGradient(x,y,0,x,y,rad);g.addColorStop(0,`rgba(0,0,0,${a})`);g.addColorStop(.6,`rgba(0,0,0,${a*.8})`);g.addColorStop(1,"rgba(0,0,0,0)");n.fillStyle=g;n.fillRect(x-rad,y-rad,rad*2,rad*2)};
+    const D=[[0,-1],[1,0],[0,1],[-1,0]];
+    for(const p of [game.player,...(game.mates||[])]){
+      if(!p||p.dead)continue;const x=p.px*48+24,y=p.py*48+24,[dx,dy]=D[p.dir??2];
+      hole(x,y,70);hole(x+dx*70,y+dy*70,105,.95);
+    }
+    for(const e of game.enemies){const x=e.px*48+24,y=e.py*48+24;
+      if(e.type==="garimpeiro")hole(x,y,26,.5);else{const [dx,dy]=D[e.dir??1];hole(x,y,34,.7);hole(x+dx*44,y+dy*44,40,.6)}}
+    for(const b of game.bombs.values())hole(b.x*48+24,b.y*48+24,38,.8);
+    for(const b of game.blasts)for(const kk of b.cells)hole((kk%15)*48+24,Math.floor(kk/15)*48+24,46,1);
+    if(game.exit)hole(game.exit[0]*48+24,game.exit[1]*48+24,40,.7);
+    c.save();c.setTransform(1,0,0,1,0,0);c.drawImage(m,0,0);c.restore();c.setTransform(k,0,0,k,0,0);
+    // farois das maquinas por cima do escuro
+    c.save();c.globalCompositeOperation="lighter";
+    for(const e of game.enemies){if(e.type==="garimpeiro")continue;const [dx,dy]=D[e.dir??1],x=e.px*48+24+dx*20,y=e.py*48+18+dy*20;this.glow(c,x,y,22,"#fff2b0",.35)}
+    c.restore();
+  }
+  return r;
+});
+})();
+// =====================================================================
 // Jogabilidade: joystick flexivel (metade esquerda inteira) e avisos
 // para prender os garimpeiros.
 // =====================================================================
@@ -2961,7 +3072,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 // Garimpeiro bandido: garimpa ouro; se encher o saco, foge com o ouro.
 // =====================================================================
 (()=>{
-const GOLD={Rio:26,Garimpo:22,Acampamento:19};   // segundos garimpando para encher o saco
+const GOLD={Rio:26,Garimpo:22,Acampamento:19,Queimada:19,"Pesca ilegal":18,"Operação noturna":20};   // segundos garimpando para encher o saco
 Garimpeiro.prototype.update=function(game,dt){
   this.safe=Math.max(0,this.safe-dt);
   if(this.gold===undefined){this.gold=0;this.mode="dig";this.modeTime=1.2+Math.random()*2;this.steps=0}
@@ -3864,6 +3975,7 @@ function snapshot(g){
     su:g.support?{x:r2(g.support.x),y:r2(g.support.y)}:0,
     ab:(g.airBombs||[]).map(b=>[b.x,b.y,r2(b.time),b.fromX,b.fromY]),
     w:g.mp.wins||{},ch:g.mp.champion||0,ro:g.mp.round||1,md:g.mp.mode};
+  snap.fi=g.fires&&g.fires.size?[...g.fires.keys()]:0;
   return snap;
 }
 // ---------- cliente: aplica o retrato ----------
@@ -4346,7 +4458,7 @@ if(G.applySnap){
 // =====================================================================
 (()=>{
 const G=Game.prototype,R=Renderer.prototype;
-const SPEED=[1,1.12,1.25];
+const SPEED=[1,1.12,1.25,1.28,1.3,1.33];
 const lo=G.load;
 G.load=function(index){
   const r=lo.call(this,index);
