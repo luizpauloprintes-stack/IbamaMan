@@ -2827,6 +2827,7 @@ function setupFlexStick(game){
   const end=e=>{
     if(e.pointerId!==id)return;
     id=null;lastDir=-1;stick.setDirection(-1);
+    if(performance.now()-(game.input.memoAt||0)>180)game.input.memo=undefined;
     knob.style.transform="translate(-50%,-50%)";
     base.classList.remove("active","floating");
     base.style.transition="transform 160ms ease-out";base.style.transform="";
@@ -4233,9 +4234,11 @@ Player.prototype.update=function(game,dt){
     if(want>=0&&want===(this.dir+2)%4){
       const x=this.x,y=this.y;this.x=this.tx;this.y=this.ty;this.tx=x;this.ty=y;
       this.progress=1-this.progress;this.dir=want;this.lastMove=want;
-    }else if(want>=0&&game.input.memo===undefined){game.input.memo=want;game.input.memoAt=performance.now()}
+    }
   }
-  return up.call(this,game,dt);
+  const was=this.progress,r=up.call(this,game,dt);
+  if(was===1&&this.progress<1)game.input.memo=undefined;   // toque rapido ja usado: nao anda casa extra
+  return r;
 }}
 for(const C of [Player,Enemy,Garimpeiro]){
   const u=C.prototype.update;
