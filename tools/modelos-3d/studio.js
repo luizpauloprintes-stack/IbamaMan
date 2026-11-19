@@ -383,6 +383,113 @@ export const PALETTES=[
   {uni:0xf08a28,vest:0xc8601a,pouch:0xdb7422,helm:0xe8a020,band:0xfff1a0,patch:"#5a2a0a"},   // laranja: brigadista
   {uni:0x3a3f46,vest:0x23272c,pouch:0x30353b,helm:0x2b3036,band:0x7ee04a,patch:"#111418"}    // preto: tatico
 ];
+
+// ---------- Fiscal principal 3D (alta qualidade, ciclo de caminhada com joelho e cotovelo) ----------
+// dir: 0 costas, 1 direita, 2 frente, 3 esquerda; ph: fase do passo 0..1 (null = parado)
+export function fiscal3d(dir=2,ph=null,pal=0,pose=null){
+  const P=PALETTES[pal],TAU=Math.PI*2,walk=ph!==null&&!pose,a=walk?ph*TAU:0;
+  if(pose)dir=2;
+  const S=(c,o={})=>M(c,{r:o.r??.55,m:o.m??0,map:o.map,e:o.e,ei:o.ei});
+  const uni=S(P.uni,{r:.7}),vest=S(P.vest,{r:.6}),pouch=S(P.pouch,{r:.65}),glove=S(0x24282a,{r:.5}),
+    boot=S(0x6e4a2a,{r:.55}),sole=S(0x2e1f12,{r:.8}),skin=S(0xf0b07a,{r:.5}),ink=S(0x141414,{r:.25}),
+    strap=S(0x2a2a26,{r:.6}),metal=S(0x9aa0a4,{m:.7,r:.3});
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  // quique: mais baixo no apoio (2 por ciclo), leve balanco lateral e torcao
+  const bob=walk?Math.abs(Math.sin(a))*.045-.01:pose==="cheer"?.08:0;
+  body.position.y=bob;
+  if(walk){body.rotation.z=Math.sin(a)*.035;body.rotation.y=Math.sin(a)*.09}
+  // pernas: quadril -> coxa -> joelho -> canela -> bota
+  for(const s of [-1,1]){
+    const sw=walk?Math.sin(a+(s>0?0:Math.PI)):0;                      // +1 = perna a frente
+    const hip=new THREE.Group();hip.position.set(s*.105,.27,0);
+    hip.rotation.x=-sw*.55;if(pose==="cheer")hip.rotation.z=s*.1;
+    hip.add(at(cap(.072,.07,uni),0,-.06,0));
+    hip.add(at(box(.05,.07,.03,pouch,.012),s*.07,-.06,.02));         // bolso cargo
+    const knee=new THREE.Group();knee.position.set(0,-.13,0);
+    knee.rotation.x=walk?Math.max(0,Math.sin(a+(s>0?0:Math.PI)-1.2))*.95:0;
+    knee.add(at(cap(.064,.06,uni),0,-.05,0));
+    const b=new THREE.Group();b.position.set(0,-.12,.02);
+    b.add(at(box(.15,.12,.24,boot,.05),0,0,.025));
+    b.add(at(box(.16,.035,.255,sole,.015),0,-.06,.025));
+    b.add(at(box(.155,.05,.11,boot,.03),0,.06,-.03));
+    for(let i=0;i<3;i++)b.add(at(box(.08,.01,.01,S(0xe8d2a8)),0,.02+i*.025,.14,-.3));
+    b.rotation.x=walk?-Math.max(0,Math.sin(a+(s>0?0:Math.PI)-1.2))*.25+sw*.12:0;
+    knee.add(b);hip.add(knee);body.add(hip);
+  }
+  // tronco: camisa, colete tatico, cinto
+  const torso=new THREE.Group();torso.position.y=.47;body.add(torso);
+  torso.add(at(box(.38,.26,.26,uni,.1),0,0,0));
+  torso.add(at(box(.4,.2,.28,vest,.07),0,.015,0));
+  for(const x of [-.12,0,.12]){torso.add(at(box(.1,.085,.06,pouch,.02),x,-.06,.15));torso.add(at(box(.1,.025,.065,vest,.01),x,-.02,.152))}
+  torso.add(at(box(.42,.045,.29,strap,.015),0,-.13,0));
+  torso.add(at(box(.07,.045,.02,S(0xd9b04a,{m:.6,r:.3}),.008),0,-.13,.148));
+  // radio no peito com antena e led
+  torso.add(at(box(.055,.09,.04,S(0x1d2422),.015),-.12,.07,.16));
+  torso.add(at(cyl(.006,.006,.07,ink,8),-.135,.14,.16));
+  torso.add(at(sph(.011,new THREE.MeshBasicMaterial({color:0x7dff8a})),-.105,.1,.182));
+  const chest=new THREE.Mesh(new THREE.PlaneGeometry(.17,.055),new THREE.MeshBasicMaterial({map:patchTex("IBAMA","#141814","#ffffff",170,56,"900 38px Arial")}));
+  torso.add(at(chest,.06,.07,.142));
+  const back=new THREE.Mesh(new THREE.PlaneGeometry(.3,.09),new THREE.MeshBasicMaterial({map:patchTex("IBAMA",P.patch,"#ffffff",180,52,"900 34px Arial")}));
+  torso.add(at(back,0,.03,-.142,0,Math.PI));
+  // bracos: ombro -> cotovelo -> luva
+  const arm=(side,rx,rz,elbow,thumb=false)=>{
+    const sh=new THREE.Group();sh.position.set(side*.235,.1,0);
+    sh.add(at(sph(.075,uni),0,0,0));
+    sh.add(at(cap(.058,.08,uni),0,-.07,0));
+    if(side===1){const f=new THREE.Mesh(new THREE.PlaneGeometry(.07,.048),new THREE.MeshBasicMaterial({map:flagTex}));sh.add(at(f,.06,-.04,0,0,Math.PI/2))}
+    const el=new THREE.Group();el.position.set(0,-.13,0);el.rotation.x=-elbow;
+    el.add(at(cap(.054,.06,uni),0,-.04,0));
+    el.add(at(sph(.075,glove,24,18),0,-.12,.01,0,0,0,1,1.05,1));
+    el.add(at(cap(.026,.035,glove),side*-.055,-.1,.04,0,0,side*.5));
+    if(thumb)el.add(at(cap(.03,.06,glove),0,-.02,.03,0,0,0));
+    sh.add(el);sh.rotation.x=rx;sh.rotation.z=rz;torso.add(sh);return sh;
+  };
+  if(pose==="thumbs"){arm(-1,-.1,-.25,.3);arm(1,-2.6,.15,1.6,true)}
+  else if(pose==="cheer"){arm(-1,0,-2.6,.2);arm(1,0,2.6,.2)}
+  else if(pose==="hurt"){arm(-1,-.5,-1.1,.6);arm(1,-.5,1.1,.6)}
+  else for(const side of [-1,1]){const sw=walk?Math.sin(a+(side>0?Math.PI:0)):0;arm(side,-sw*.6,side*.18,walk?.35+Math.max(0,-sw)*.4:.25)}
+  // cabeca grande
+  const head=new THREE.Group();head.position.y=.86;body.add(head);
+  if(walk)head.position.y-=Math.abs(Math.sin(a))*.012;
+  if(pose==="hurt")head.rotation.z=.2;
+  if(dir===1)head.rotation.y=-.4;else if(dir===3)head.rotation.y=.4;   // olha um pouco para a camera
+  head.add(at(cyl(.07,.08,.08,skin),0,-.2,0));                          // pescoco
+  head.add(at(sph(.27,skin,48,36),0,0,0,0,0,0,1.06,1,1));
+  head.add(at(sph(.2,S(0x3a2414,{r:.8}),32,24),0,-.02,-.12,0,0,0,1.15,.75,.7));   // nuca
+  for(const s of [-1,1]){
+    head.add(at(sph(.06,skin,20,16),s*.285,-.02,0,0,0,0,.45,.8,.65));            // orelhas
+    head.add(at(box(.03,.12,.04,S(0x3a2414,{r:.8}),.012),s*.255,.02,.06));      // costeletas
+  }
+  // rosto: olhos ovais brilhantes, sobrancelhas grossas em V, careta
+  for(const s of [-1,1]){
+    if(pose==="hurt"){for(const r of [.7,-.7])head.add(at(box(.09,.022,.02,ink,.008),s*.095,-.03,.262,0,0,r))}
+    else if(pose==="thumbs"||pose==="cheer"){head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.04,.013,8,16,Math.PI),ink),s*.095,-.04,.258))}
+    else{
+      head.add(at(sph(.055,ink,24,18),s*.095,-.035,.238,0,0,0,.8,1.3,.5));
+      head.add(at(sph(.018,new THREE.MeshBasicMaterial({color:0xffffff}),12,10),s*.095-.013,-.005,.262));
+      head.add(at(box(.13,.045,.03,skin,.01),s*.095,.025,.257,0,0,s*.42));          // palpebra brava
+    }
+    if(pose!=="hurt")head.add(at(box(.13,.04,.035,S(0x241812,{r:.6}),.014),s*.095,pose?.06:.05,.265,0,0,pose?s*.12:s*.42));
+  }
+  head.add(at(sph(.03,S(0xe39a68),12,10),0,-.08,.27,0,0,0,1,.8,.7));               // nariz
+  if(pose==="cheer"||pose==="thumbs")head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.055,.015,8,16,Math.PI),S(0x8a3e2c)),0,-.13,.245,Math.PI,0,0));
+  else if(pose==="hurt")head.add(at(sph(.035,S(0x5a1d26)),0,-.15,.24,0,0,0,1,1.2,.5));
+  else{head.add(at(box(.11,.028,.03,S(0x5a2418),.012),0,-.15,.248,0,0,.08));head.add(at(box(.07,.012,.01,S(0xffffff)),.005,-.147,.262,0,0,.08))}   // boca firme, dentes cerrados
+  // capacete tatico com aba, jugular e emblema IBAMA
+  const helm=S(P.helm,{r:.45});
+  head.add(at(new THREE.Mesh(new THREE.SphereGeometry(.3,48,24,0,TAU,0,Math.PI/2),helm),0,.09,0,0,0,0,1.06,.98,1.05));
+  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.31,.03,12,56),helm),0,.09,0,Math.PI/2,0,0,1.03,1.03,1));
+  const brim=new THREE.Mesh(new THREE.CylinderGeometry(.2,.21,.025,32,1,false,-Math.PI/2.4,Math.PI/1.2),helm);
+  head.add(at(brim,0,.085,.16,.1,0,0,1,1,1));
+  head.add(at(new THREE.Mesh(new THREE.TorusGeometry(.303,.014,8,56),S(P.band,{r:.4})),0,.14,0,Math.PI/2,0,0,1.04,1.03,1));
+  const hp=new THREE.Mesh(new THREE.PlaneGeometry(.2,.1),new THREE.MeshBasicMaterial({map:patchTex("IBAMA",P.patch,"#ffffff",160,80,"900 42px Arial")}));
+  head.add(at(hp,0,.26,.265,-.5));
+  const hb=new THREE.Mesh(new THREE.PlaneGeometry(.2,.1),new THREE.MeshBasicMaterial({map:patchTex("IBAMA",P.patch,"#ffffff",160,80,"900 42px Arial")}));
+  head.add(at(hb,0,.26,-.27,.5,Math.PI));
+  root.scale.setScalar(.84);
+  root.rotation.y=[Math.PI,Math.PI*.33,0,-Math.PI*.33][dir];   // perfil 3/4: o rosto aparece de lado
+  return root;
+}
 export function fiscalToon(dir=2,frame=0,pal=0,pose=null){
   const P=PALETTES[pal],phase=frame?(frame-1)/4:0,root=new THREE.Group(),body=new THREE.Group();root.add(body);
   if(pose)dir=2;
@@ -674,5 +781,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true,thick=
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,yaw,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,yaw,fiscal3d,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;
