@@ -386,6 +386,119 @@ export const PALETTES=[
 
 // ---------- Fiscal principal 3D (alta qualidade, ciclo de caminhada com joelho e cotovelo) ----------
 // dir: 0 costas, 1 direita, 2 frente, 3 esquerda; ph: fase do passo 0..1 (null = parado)
+
+// ---------- base de boneco 3D com caminhada articulada (garimpeiro e chefe) ----------
+function walker(dir,ph,o){
+  const TAU=Math.PI*2,walk=ph!==null,a=walk?ph*TAU:0;
+  const root=new THREE.Group(),body=new THREE.Group();root.add(body);
+  body.position.y=walk?Math.abs(Math.sin(a))*.045-.01:0;
+  if(walk){body.rotation.z=Math.sin(a)*.035;body.rotation.y=Math.sin(a)*.08}
+  for(const s of [-1,1]){
+    const sw=walk?Math.sin(a+(s>0?0:Math.PI)):0;
+    const hip=new THREE.Group();hip.position.set(s*.1,.27,0);hip.rotation.x=-sw*.55;
+    hip.add(at(cap(.07,.07,o.pants),0,-.06,0));
+    const knee=new THREE.Group();knee.position.set(0,-.13,0);
+    const kb=walk?Math.max(0,Math.sin(a+(s>0?0:Math.PI)-1.2)):0;knee.rotation.x=kb*.95;
+    knee.add(at(cap(.064,.06,o.pants),0,-.05,0));
+    const b=new THREE.Group();b.position.set(0,-.13,.02);
+    b.add(at(box(.14,.1,.22,o.shoe,.045),0,0,.025));b.add(at(box(.15,.03,.23,M(0x111111,{r:.8}),.012),0,-.05,.025));
+    b.rotation.x=walk?-kb*.25+sw*.12:0;knee.add(b);hip.add(knee);body.add(hip);
+  }
+  const torso=new THREE.Group();torso.position.y=.47;body.add(torso);
+  o.torso(torso);
+  const arm=(side,rx,rz,elbow,extra)=>{
+    const sh=new THREE.Group();sh.position.set(side*.22,.1,0);
+    sh.add(at(sph(.07,o.sleeve),0,0,0));sh.add(at(cap(.056,.08,o.sleeve),0,-.07,0));
+    const el=new THREE.Group();el.position.set(0,-.13,0);el.rotation.x=-elbow;
+    el.add(at(cap(.052,.06,o.sleeve),0,-.04,0));el.add(at(sph(.068,o.hand,20,16),0,-.12,.01));
+    if(extra)extra(el,side);sh.add(el);sh.rotation.x=rx;sh.rotation.z=rz;torso.add(sh);return sh;
+  };
+  o.arms(arm,a,walk);
+  const head=new THREE.Group();head.position.y=.86;body.add(head);
+  if(dir===1)head.rotation.y=-.4;else if(dir===3)head.rotation.y=.4;
+  o.head(head);
+  if(o.extra)o.extra(body,torso,a,walk);
+  root.scale.setScalar(o.scale||.84);
+  root.rotation.y=[Math.PI,Math.PI*.33,0,-Math.PI*.33][dir];
+  return root;
+}
+const angryEyes=(head,skin,z=.238,fury=false)=>{
+  const ink=M(0x141414,{r:.25});
+  for(const s of [-1,1]){
+    head.add(at(sph(.05,ink,20,16),s*.09,-.03,z,0,0,0,.8,1.2,.5));
+    head.add(at(sph(.016,new THREE.MeshBasicMaterial({color:0xffffff}),10,8),s*.09-.012,-.004,z+.022));
+    head.add(at(box(.12,.045,.03,skin,.01),s*.09,.025,z+.018,0,0,s*.45));
+    head.add(at(box(.12,.036,.035,M(0x1c1410),.012),s*.09,.05,z+.026,0,0,s*(fury?.6:.45)));
+  }
+};
+const stripeTex2=tex(64,64,(g,w,h)=>{for(let i=0;i<8;i++){g.fillStyle=i%2?"#f2f2f2":"#1a1a1a";g.fillRect(0,i*8,w,8)}});
+// garimpeiro bandido: balaclava, camisa listrada, saco de ouro nas costas
+export function bandido3d(dir=2,ph=null,dig=null){
+  const black=M(0x1b1b1d,{r:.75}),skin=M(0xe8a878,{r:.5});
+  const shirt=new THREE.MeshStandardMaterial({map:stripeTex2,roughness:.7});
+  const sack=M(0xb89a6a,{r:.9}),rope=M(0x6b4a2c,{r:.8});
+  const o={pants:M(0x5a4430,{r:.75}),shoe:M(0x161616,{r:.5}),sleeve:shirt,hand:black,
+    torso:t=>{t.add(at(box(.36,.26,.25,shirt,.1),0,0,0));t.add(at(box(.38,.04,.27,M(0x2a2018),.015),0,-.13,0))},
+    arms:(arm,a,walk)=>{
+      if(dig!==null){const k=Math.sin(dig/4*Math.PI*2);for(const s of [-1,1])arm(s,-1.2-k*.7,s*.25,.6,s>0?(el)=>{
+        el.add(at(cyl(.014,.014,.42,rope),0,-.14,.12,1.3,0,0));el.add(at(box(.1,.02,.08,M(0x8a8f8c,{m:.6,r:.4}),.01),0,-.2,.33,1.3,0,0))}:null);return}
+      arm(1,-2.5,.35,1.9);                                                   // segura o saco no ombro
+      const sw=walk?Math.sin(a):0;arm(-1,sw*.6,-.18,walk?.35+Math.max(0,sw)*.4:.25);
+    },
+    head:h=>{
+      h.add(at(cyl(.07,.08,.08,black),0,-.2,0));
+      h.add(at(sph(.27,black,48,36),0,0,0,0,0,0,1.04,1.02,1));
+      h.add(at(box(.36,.12,.08,skin,.05),0,-.02,.215,0,0,0,1,1,1));        // abertura dos olhos
+      angryEyes(h,skin,.245);
+      h.add(at(sph(.03,M(0x2a1a14),10,8),0,-.16,.255,0,0,0,1.4,.7,.5));   // boca
+      h.add(at(sph(.05,black,12,10),0,.27,0,0,0,0,1,.6,1));                // pompom
+    },
+    extra:(body,torso)=>{
+      if(dig!==null)return;
+      const sk=new THREE.Group();sk.position.set(.2,.74,-.1);body.add(sk);
+      sk.add(at(sph(.2,sack,28,20),0,0,0,0,0,0,1,1.1,.9));
+      sk.add(at(sph(.07,sack,14,10),.03,.21,.03,0,0,0,1,1.4,1));
+      sk.add(at(new THREE.Mesh(new THREE.TorusGeometry(.05,.012,6,16),rope),.03,.16,.03,Math.PI/2,0,0));
+      for(const [x,y] of [[-.06,.05],[.05,-.06]])sk.add(at(sph(.03,M(0xffd34a,{m:.7,r:.25}),10,8),x,y,.17));
+    }};
+  if(dig!==null)dir=2;
+  return walker(dir,dig!==null?null:ph,o);
+}
+// chefe: deputado de terno, chapeu de palha e motosserra
+export function chefe3d(dir=2,ph=null,enraged=false,windup=false){
+  const navy=M(0x1f2c4f,{r:.6}),skin=M(enraged?0xd8402e:0xf0b48a,{r:.5}),white=M(0xf4f4f0,{r:.6});
+  const straw=M(0xc9a36a,{r:.8}),band=M(0x6b4424,{r:.7}),orange=M(0xf07a1c,{r:.45}),steel=M(0xc8ccd0,{m:.8,r:.25});
+  const o={pants:navy,shoe:M(0x101010,{r:.3}),sleeve:navy,hand:M(enraged?0xd8402e:0xf0b48a),scale:.9,
+    torso:t=>{
+      t.add(at(box(.4,.28,.27,navy,.1),0,0,0));
+      t.add(at(box(.14,.2,.02,white,.01),0,.03,.135));
+      t.add(at(box(.035,.16,.02,M(0xd0202a,{r:.5}),.008),0,.01,.148));
+      for(const s of [-1,1])t.add(at(box(.07,.2,.02,M(0x182240),.01),s*.075,.03,.142,0,0,s*.35));
+      for(const y of [-.03,-.09])t.add(at(sph(.012,M(0x0c0c0c)),.045,y,.142));
+    },
+    arms:(arm)=>{const up=windup?.9:0;arm(-1,-1.1-up,-.15,.9);arm(1,-1.1-up,.15,.9)},
+    head:h=>{
+      h.add(at(cyl(.07,.08,.08,skin),0,-.2,0));
+      h.add(at(sph(.27,skin,48,36),0,0,0,0,0,0,1.06,1,1));
+      for(const s of [-1,1])h.add(at(sph(.06,skin,16,12),s*.285,-.02,0,0,0,0,.45,.8,.65));
+      angryEyes(h,skin,.238,enraged);
+      if(enraged){h.add(at(box(.14,.06,.03,M(0xfafafa),.015),0,-.15,.245));h.add(at(box(.14,.008,.032,M(0x6a1010)),0,-.15,.247))}
+      else h.add(at(box(.1,.022,.03,M(0x6a2a1c),.01),0,-.15,.247,0,0,-.12));
+      h.add(at(cyl(.21,.23,.17,straw,32),0,.22,0));
+      h.add(at(cyl(.215,.235,.04,band,32),0,.16,0));
+      h.add(at(cyl(.42,.42,.025,straw,40),0,.13,0,.06,0,0));
+    },
+    extra:(body,torso)=>{
+      const saw=new THREE.Group();saw.position.set(0,.3+(windup?.25:0),.3);saw.rotation.x=windup?-.6:0;body.add(saw);
+      saw.add(at(box(.22,.15,.13,orange,.04),0,0,0));
+      saw.add(at(box(.1,.04,.14,M(0x222222),.015),-.06,.1,0));
+      saw.add(at(box(.5,.05,.02,steel,.02),.34,-.01,0));
+      for(let i=0;i<9;i++)saw.add(at(box(.025,.02,.025,M(0x333333)),.12+i*.055,.025,0));
+      saw.add(at(cyl(.02,.02,.06,M(0x333333)),-.12,0,0,0,0,Math.PI/2));
+      saw.rotation.y=-.5;
+    }};
+  return walker(dir,ph,o);
+}
 export function fiscal3d(dir=2,ph=null,pal=0,pose=null){
   const P=PALETTES[pal],TAU=Math.PI*2,walk=ph!==null&&!pose,a=walk?ph*TAU:0;
   if(pose)dir=2;
@@ -781,5 +894,5 @@ export function render(obj,size,groundY=0,elevDeg=30,scale=2,outline=true,thick=
   g.drawImage(tmp,0,0);
   return out;
 }
-window.STUDIO={THREE,render,yaw,fiscal3d,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
+window.STUDIO={THREE,render,yaw,fiscal3d,bandido3d,chefe3d,rocks,crateGarimpo,fiscal,fiscalTatico,fiscalToon,garimpeiro,bandido,heroTatico,onca,arara,boss,balsa,escavadeira,dragagem,helicopter,drone,crate,logs,papers,desk,bomb};
 window.studioReady=true;

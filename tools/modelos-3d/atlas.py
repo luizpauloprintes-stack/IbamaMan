@@ -9,6 +9,9 @@ async def main():
         atlas=await pg.evaluate("""()=>{
           const S=window.STUDIO,A={},add=(name,obj,size,gy,el,scale=2,thick=1.1)=>{A[name]={size,src:S.render(obj,size,gy,el,scale,true,thick).toDataURL('image/webp',.92)}};
           for(let c=0;c<4;c++){for(let d=0;d<3;d++){add(`h${c}_${d}_i`,S.fiscal3d(d,null,c),64,20,18,2,1.5);for(let f=0;f<8;f++)add(`h${c}_${d}_${f}`,S.fiscal3d(d,f/8,c),64,20,18,2,1.5)}for(const ps of ['thumbs','cheer','hurt'])add(`h${c}_p_${ps}`,S.fiscal3d(2,null,c,ps),64,20,18,2,1.5)}
+          for(let d=0;d<3;d++){add(`b_${d}_i`,S.bandido3d(d,null),64,20,18,2,1.5);for(let f=0;f<8;f++)add(`b_${d}_${f}`,S.bandido3d(d,f/8),64,20,18,2,1.5)}
+          for(let f=0;f<4;f++)add(`b_dig_${f}`,S.bandido3d(2,null,f),64,20,18,2,1.5);
+          for(const e of [0,1]){add(`k${e}_2_i`,S.chefe3d(2,null,!!e),80,22,18,2,1.5);add(`k${e}_w`,S.chefe3d(2,null,!!e,true),80,22,18,2,1.5);for(let f=0;f<8;f++)add(`k${e}_1_${f}`,S.chefe3d(1,f/8,!!e),80,22,18,2,1.5)}
           for(let r=0;r<8;r++){add(`balsa_${r}`,S.yaw(S.balsa(),r),64,10,38);
             for(let f=0;f<4;f++){add(`escavadeira_${r}_${f}`,S.yaw(S.escavadeira(f),r),80,16,36);add(`dragagem_${r}_${f}`,S.yaw(S.dragagem(f),r),80,12,38)}}
                     add('crate',S.crateGarimpo(),64,14,36);add('logs',S.rocks(),64,14,40);add('papers',S.papers(),64,14,40);add('desk',S.desk(),64,14,40);
